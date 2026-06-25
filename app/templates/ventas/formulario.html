@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} · CampoSuite{% endblock %}
+
+{% block page_title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h5 class="mb-1">{{ titulo }}</h5>
+        <p class="text-muted mb-0">
+            Registra ventas de café, plátano, banano o comino de la finca activa.
+        </p>
+    </div>
+
+    <a href="{{ url_for('ventas.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>
+        Volver
+    </a>
+</div>
+
+<div class="panel-card">
+    <form method="post" class="row g-3">
+
+        <div class="col-12 col-md-4">
+            <label class="form-label">Fecha *</label>
+            <input type="date"
+                   name="fecha"
+                   class="form-control"
+                   value="{% if venta %}{{ venta.fecha.isoformat() }}{% else %}{{ fecha_hoy }}{% endif %}"
+                   required>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <label class="form-label">Producto vendido *</label>
+            <select name="producto"
+                    id="productoSelect"
+                    class="form-select"
+                    required>
+                <option value="">Seleccionar...</option>
+
+                {% for valor, texto in productos %}
+                    <option value="{{ valor }}"
+                            {% if venta and venta.producto == valor %}selected{% endif %}>
+                        {{ texto }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <small class="text-muted">
+                Según el producto, CampoSuite mostrará solo los campos necesarios.
+            </small>
+        </div>
+
+        <!-- Sección Café -->
+        <div class="col-12 d-none" id="seccionCafe">
+            <div class="border rounded-4 p-3 bg-light">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-cup-hot-fill"></i>
+                    <h6 class="mb-0">Información de venta de café</h6>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Tipo de café *</label>
+                        <select name="tipo_producto"
+                                id="tipoCafeSelect"
+                                class="form-select">
+                            <option value="">Seleccionar...</option>
+
+                            {% for tipo in tipos_cafe %}
+                                <option value="{{ tipo }}"
+                                        {% if venta and venta.producto == "cafe" and venta.tipo_producto == tipo %}selected{% endif %}>
+                                    {{ tipo }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Kilos de café vendidos *</label>
+                        <input type="text"
+                               name="kilos"
+                               id="kilosCafeInput"
+                               class="form-control"
+                               value="{% if venta and venta.producto == 'cafe' %}{{ venta.kilos }}{% endif %}"
+                               placeholder="Ejemplo: 120">
+                        <small class="text-muted">
+                            Usa coma para decimales. Ejemplo: 120,5
+                        </small>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Arrobas calculadas</label>
+                        <input type="text"
+                               id="arrobasCafeInput"
+                               class="form-control"
+                               readonly>
+                        <small class="text-muted">
+                            1 arroba = 12 kg.
+                        </small>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Precio pagado por arroba *</label>
+                        <input type="text"
+                               name="precio_unitario"
+                               id="precioArrobaInput"
+                               class="form-control"
+                               value="{% if venta and venta.producto == 'cafe' %}{{ venta.precio_unitario }}{% endif %}"
+                               placeholder="Ejemplo: 500000">
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Valor esperado según arrobas</label>
+                        <input type="text"
+                               id="valorEsperadoCafeInput"
+                               class="form-control"
+                               readonly>
+                        <small class="text-muted">
+                            Campo informativo. No reemplaza el total real recibido.
+                        </small>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Valor total recibido *</label>
+                        <input type="text"
+                               name="valor_total"
+                               id="valorTotalCafeInput"
+                               class="form-control"
+                               value="{% if venta and venta.producto == 'cafe' %}{{ venta.valor_total }}{% endif %}"
+                               placeholder="Ejemplo: 5000000">
+                        <small class="text-muted">
+                            Escribe el valor real que te pagaron en total.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección Plátano / Banano / Comino -->
+        <div class="col-12 d-none" id="seccionPlatano">
+            <div class="border rounded-4 p-3 bg-light">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-basket-fill"></i>
+                    <h6 class="mb-0">Información de venta de plátano, banano o comino</h6>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Tipo de producto *</label>
+                        <select name="tipo_producto"
+                                id="tipoPlatanoSelect"
+                                class="form-select">
+                            <option value="">Seleccionar...</option>
+
+                            {% for tipo in tipos_platano %}
+                                <option value="{{ tipo }}"
+                                        {% if venta and venta.producto == "platano" and venta.tipo_producto == tipo %}selected{% endif %}>
+                                    {{ tipo }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Kilos vendidos *</label>
+                        <input type="text"
+                               name="kilos"
+                               id="kilosPlatanoInput"
+                               class="form-control"
+                               value="{% if venta and venta.producto == 'platano' %}{{ venta.kilos }}{% endif %}"
+                               placeholder="Ejemplo: 200">
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Racimos vendidos *</label>
+                        <input type="number"
+                               name="racimos"
+                               id="racimosPlatanoInput"
+                               class="form-control"
+                               value="{% if venta and venta.producto == 'platano' and venta.racimos %}{{ venta.racimos }}{% endif %}"
+                               placeholder="Ejemplo: 25">
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Precio pagado por kilo *</label>
+                        <input type="text"
+                               name="precio_unitario"
+                               id="precioKiloPlatanoInput"
+                               class="form-control"
+                               value="{% if venta and venta.producto == 'platano' %}{{ venta.precio_unitario }}{% endif %}"
+                               placeholder="Ejemplo: 1800">
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Valor esperado según kilos</label>
+                        <input type="text"
+                               id="valorEsperadoPlatanoInput"
+                               class="form-control"
+                               readonly>
+                        <small class="text-muted">
+                            Kilos vendidos × precio por kilo.
+                        </small>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Kg promedio por racimo</label>
+                        <input type="text"
+                               id="kgPromedioRacimoInput"
+                               class="form-control"
+                               readonly>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Valor total recibido *</label>
+                        <input type="text"
+                               name="valor_total"
+                               id="valorTotalPlatanoInput"
+                               class="form-control"
+                               value="{% if venta and venta.producto == 'platano' %}{{ venta.valor_total }}{% endif %}"
+                               placeholder="Ejemplo: 360000">
+                        <small class="text-muted">
+                            Escribe el valor real que te pagaron en total.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label">Observaciones</label>
+            <textarea name="observaciones"
+                      class="form-control"
+                      rows="4"
+                      placeholder="Ejemplo: venta en cooperativa, ajuste por humedad, pago parcial, venta directa, etc.">{% if venta and venta.observaciones %}{{ venta.observaciones }}{% endif %}</textarea>
+        </div>
+
+        <div class="col-12 d-flex flex-column flex-md-row gap-2 justify-content-end mt-4">
+            <a href="{{ url_for('ventas.index') }}" class="btn btn-outline-secondary">
+                Cancelar
+            </a>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i>
+                {{ texto_boton }}
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const productoSelect = document.getElementById("productoSelect");
+
+        const seccionCafe = document.getElementById("seccionCafe");
+        const seccionPlatano = document.getElementById("seccionPlatano");
+
+        const tipoCafeSelect = document.getElementById("tipoCafeSelect");
+        const kilosCafeInput = document.getElementById("kilosCafeInput");
+        const precioArrobaInput = document.getElementById("precioArrobaInput");
+        const valorTotalCafeInput = document.getElementById("valorTotalCafeInput");
+        const arrobasCafeInput = document.getElementById("arrobasCafeInput");
+        const valorEsperadoCafeInput = document.getElementById("valorEsperadoCafeInput");
+
+        const tipoPlatanoSelect = document.getElementById("tipoPlatanoSelect");
+        const kilosPlatanoInput = document.getElementById("kilosPlatanoInput");
+        const racimosPlatanoInput = document.getElementById("racimosPlatanoInput");
+        const precioKiloPlatanoInput = document.getElementById("precioKiloPlatanoInput");
+        const valorTotalPlatanoInput = document.getElementById("valorTotalPlatanoInput");
+        const valorEsperadoPlatanoInput = document.getElementById("valorEsperadoPlatanoInput");
+        const kgPromedioRacimoInput = document.getElementById("kgPromedioRacimoInput");
+
+        function convertirNumero(valor) {
+            if (!valor) {
+                return 0;
+            }
+
+            return parseFloat(
+                valor
+                    .toString()
+                    .replace("$", "")
+                    .replace(/\./g, "")
+                    .replace(",", ".")
+                    .trim()
+            ) || 0;
+        }
+
+        function formatearNumero(valor, decimales = 2) {
+            return valor.toLocaleString("es-CO", {
+                minimumFractionDigits: decimales,
+                maximumFractionDigits: decimales
+            });
+        }
+
+        function formatearPesos(valor) {
+            return "$" + valor.toLocaleString("es-CO", {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        }
+
+        function activarCampo(campo, requerido = true) {
+            campo.disabled = false;
+
+            if (requerido) {
+                campo.required = true;
+            }
+        }
+
+        function desactivarCampo(campo) {
+            campo.disabled = true;
+            campo.required = false;
+        }
+
+        function actualizarFormulario() {
+            const producto = productoSelect.value;
+
+            if (producto === "cafe") {
+                seccionCafe.classList.remove("d-none");
+                seccionPlatano.classList.add("d-none");
+
+                activarCampo(tipoCafeSelect);
+                activarCampo(kilosCafeInput);
+                activarCampo(precioArrobaInput);
+                activarCampo(valorTotalCafeInput);
+
+                desactivarCampo(tipoPlatanoSelect);
+                desactivarCampo(kilosPlatanoInput);
+                desactivarCampo(racimosPlatanoInput);
+                desactivarCampo(precioKiloPlatanoInput);
+                desactivarCampo(valorTotalPlatanoInput);
+
+            } else if (producto === "platano") {
+                seccionCafe.classList.add("d-none");
+                seccionPlatano.classList.remove("d-none");
+
+                desactivarCampo(tipoCafeSelect);
+                desactivarCampo(kilosCafeInput);
+                desactivarCampo(precioArrobaInput);
+                desactivarCampo(valorTotalCafeInput);
+
+                activarCampo(tipoPlatanoSelect);
+                activarCampo(kilosPlatanoInput);
+                activarCampo(racimosPlatanoInput);
+                activarCampo(precioKiloPlatanoInput);
+                activarCampo(valorTotalPlatanoInput);
+
+            } else {
+                seccionCafe.classList.add("d-none");
+                seccionPlatano.classList.add("d-none");
+
+                desactivarCampo(tipoCafeSelect);
+                desactivarCampo(kilosCafeInput);
+                desactivarCampo(precioArrobaInput);
+                desactivarCampo(valorTotalCafeInput);
+
+                desactivarCampo(tipoPlatanoSelect);
+                desactivarCampo(kilosPlatanoInput);
+                desactivarCampo(racimosPlatanoInput);
+                desactivarCampo(precioKiloPlatanoInput);
+                desactivarCampo(valorTotalPlatanoInput);
+            }
+
+            calcularCafe();
+            calcularPlatano();
+        }
+
+        function calcularCafe() {
+            const kilos = convertirNumero(kilosCafeInput.value);
+            const precioArroba = convertirNumero(precioArrobaInput.value);
+
+            const arrobas = kilos / 12;
+            const valorEsperado = arrobas * precioArroba;
+
+            arrobasCafeInput.value = kilos > 0 ? formatearNumero(arrobas, 2) + " arrobas" : "";
+            valorEsperadoCafeInput.value = valorEsperado > 0 ? formatearPesos(valorEsperado) : "";
+        }
+
+        function calcularPlatano() {
+            const kilos = convertirNumero(kilosPlatanoInput.value);
+            const racimos = convertirNumero(racimosPlatanoInput.value);
+            const precioKilo = convertirNumero(precioKiloPlatanoInput.value);
+
+            const valorEsperado = kilos * precioKilo;
+            const kgPromedio = racimos > 0 ? kilos / racimos : 0;
+
+            valorEsperadoPlatanoInput.value = valorEsperado > 0 ? formatearPesos(valorEsperado) : "";
+            kgPromedioRacimoInput.value = kgPromedio > 0 ? formatearNumero(kgPromedio, 2) + " kg/racimo" : "";
+        }
+
+        productoSelect.addEventListener("change", actualizarFormulario);
+
+        kilosCafeInput.addEventListener("input", calcularCafe);
+        precioArrobaInput.addEventListener("input", calcularCafe);
+
+        kilosPlatanoInput.addEventListener("input", calcularPlatano);
+        racimosPlatanoInput.addEventListener("input", calcularPlatano);
+        precioKiloPlatanoInput.addEventListener("input", calcularPlatano);
+
+        actualizarFormulario();
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}{{ accion }} | CampoSuite{% endblock %}
+{% block page_title %}Producción Plátano{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-9">
+        <div class="panel-card">
+            <div class="d-flex justify-content-between align-items-start mb-4 flex-column flex-md-row gap-3">
+                <div>
+                    <h5 class="section-title mb-1">
+                        <i class="bi bi-basket-fill me-1"></i>
+                        {{ accion }}
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        Registra racimos cosechados y su equivalente en kilogramos.
+                    </p>
+                </div>
+
+                <a href="{{ url_for('produccion_platano.index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Volver
+                </a>
+            </div>
+
+            <form method="POST">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label for="fecha" class="form-label">Fecha de producción</label>
+                        <input type="date"
+                               id="fecha"
+                               name="fecha"
+                               class="form-control"
+                               value="{{ produccion.fecha.isoformat() if produccion else hoy }}"
+                               required>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="lote" class="form-label">Lote</label>
+                        <input type="text"
+                               id="lote"
+                               name="lote"
+                               class="form-control"
+                               value="{{ produccion.lote if produccion else '' }}"
+                               placeholder="Ej: Lote 1, La Esperanza, El Bajo"
+                               required>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="tipo_cultivo" class="form-label">Tipo de cultivo</label>
+                        <select id="tipo_cultivo" name="tipo_cultivo" class="form-select" required>
+                            <option value="">Seleccionar</option>
+
+                            {% for valor, etiqueta in tipos_cultivo.items() %}
+                                <option value="{{ valor }}"
+                                    {% if produccion and produccion.tipo_cultivo == valor %}selected{% endif %}>
+                                    {{ etiqueta }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="racimos" class="form-label">Cantidad en racimos</label>
+                        <input type="number"
+                               id="racimos"
+                               name="racimos"
+                               class="form-control"
+                               min="1"
+                               step="1"
+                               value="{{ produccion.racimos if produccion else '' }}"
+                               placeholder="Ej: 80"
+                               required>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="kilos" class="form-label">Equivalente en kilogramos</label>
+                        <input type="number"
+                               id="kilos"
+                               name="kilos"
+                               class="form-control"
+                               step="0.01"
+                               min="0.01"
+                               value="{{ produccion.kilos if produccion else '' }}"
+                               placeholder="Ej: 1200"
+                               required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-3">
+                    <div class="col-12 col-md-4">
+                        <div class="card border-0 bg-light h-100">
+                            <div class="card-body">
+                                <span class="text-muted small d-block">Racimos</span>
+                                <strong id="totalRacimos">0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <div class="card border-0 bg-light h-100">
+                            <div class="card-body">
+                                <span class="text-muted small d-block">Kilogramos</span>
+                                <strong id="totalKilos">0,00 kg</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <div class="card border-0 bg-light h-100">
+                            <div class="card-body">
+                                <span class="text-muted small d-block">Kg por racimo</span>
+                                <strong id="kilosPorRacimo">0,00</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <label for="observaciones" class="form-label">Observaciones</label>
+                    <textarea id="observaciones"
+                              name="observaciones"
+                              class="form-control"
+                              rows="3"
+                              placeholder="Notas sobre corte, calidad, destino o estado del cultivo">{{ produccion.observaciones if produccion and produccion.observaciones else '' }}</textarea>
+                </div>
+
+                <div class="d-grid d-md-flex justify-content-md-end gap-2 mt-4">
+                    <a href="{{ url_for('produccion_platano.index') }}" class="btn btn-outline-secondary">
+                        Cancelar
+                    </a>
+
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save-fill me-1"></i>
+                        Guardar producción
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const racimosInput = document.getElementById("racimos");
+    const kilosInput = document.getElementById("kilos");
+    const totalRacimos = document.getElementById("totalRacimos");
+    const totalKilos = document.getElementById("totalKilos");
+    const kilosPorRacimo = document.getElementById("kilosPorRacimo");
+
+    function truncar(numero, decimales = 2) {
+        const factor = Math.pow(10, decimales);
+        return Math.floor(numero * factor) / factor;
+    }
+
+    function formatoDecimal(numero) {
+        return truncar(numero, 2).toLocaleString("es-CO", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function formatoEntero(numero) {
+        return Math.trunc(numero || 0).toLocaleString("es-CO");
+    }
+
+    function calcularTotales() {
+        const racimos = parseInt(racimosInput.value) || 0;
+        const kilos = parseFloat(kilosInput.value) || 0;
+        const promedio = racimos > 0 ? kilos / racimos : 0;
+
+        totalRacimos.textContent = formatoEntero(racimos);
+        totalKilos.textContent = formatoDecimal(kilos) + " kg";
+        kilosPorRacimo.textContent = formatoDecimal(promedio);
+    }
+
+    racimosInput.addEventListener("input", calcularTotales);
+    kilosInput.addEventListener("input", calcularTotales);
+    calcularTotales();
+});
+</script>
+
+{% endblock %}

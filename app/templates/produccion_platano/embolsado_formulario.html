@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}{{ accion }} | CampoSuite{% endblock %}
+{% block page_title %}Producción Plátano{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="panel-card">
+            <div class="d-flex justify-content-between align-items-start mb-4 flex-column flex-md-row gap-3">
+                <div>
+                    <h5 class="section-title mb-1">
+                        <i class="bi bi-bag-plus-fill me-1"></i>
+                        {{ accion }}
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        Registra embolsados para estimar la próxima corta y planificar la logística.
+                    </p>
+                </div>
+
+                <a href="{{ url_for('produccion_platano.index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Volver
+                </a>
+            </div>
+
+            <form method="POST">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label for="fecha_embolsado" class="form-label">Fecha de embolsado</label>
+
+                        <input type="date"
+                               id="fecha_embolsado"
+                               name="fecha_embolsado"
+                               class="form-control"
+                               value="{{ embolsado.fecha_embolsado.isoformat() if embolsado else hoy }}"
+                               required>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="lote" class="form-label">Lote</label>
+
+                        <input type="text"
+                               id="lote"
+                               name="lote"
+                               class="form-control"
+                               value="{{ embolsado.lote if embolsado else '' }}"
+                               placeholder="Ej: Lote 1, La Esperanza, El Bajo"
+                               required>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="tipo_cultivo" class="form-label">Tipo de cultivo</label>
+
+                        <select id="tipo_cultivo" name="tipo_cultivo" class="form-select" required>
+                            <option value="">Seleccionar</option>
+
+                            {% for valor, etiqueta in tipos_cultivo.items() %}
+                                <option value="{{ valor }}"
+                                    {% if embolsado and embolsado.tipo_cultivo == valor %}selected{% endif %}>
+                                    {{ etiqueta }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="racimos_embolsados" class="form-label">Racimos embolsados</label>
+
+                        <input type="number"
+                               id="racimos_embolsados"
+                               name="racimos_embolsados"
+                               class="form-control"
+                               min="1"
+                               step="1"
+                               value="{{ embolsado.racimos_embolsados if embolsado else '' }}"
+                               placeholder="Ej: 60"
+                               required>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="ciclo_estimado_dias" class="form-label">Ciclo estimado en días</label>
+
+                        <input type="number"
+                               id="ciclo_estimado_dias"
+                               name="ciclo_estimado_dias"
+                               class="form-control"
+                               min="1"
+                               step="1"
+                               value="{{ embolsado.ciclo_estimado_dias if embolsado else 90 }}"
+                               required>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="observaciones" class="form-label">Observaciones</label>
+
+                        <textarea id="observaciones"
+                                  name="observaciones"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Notas sobre estado del cultivo, calibre, clima o seguimiento">{{ embolsado.observaciones if embolsado and embolsado.observaciones else '' }}</textarea>
+                    </div>
+                </div>
+
+                <div class="alert alert-success mt-4 mb-0">
+                    <i class="bi bi-info-circle-fill me-1"></i>
+                    CampoSuite calculará la fecha aproximada de próxima corta sumando el ciclo estimado a la fecha de embolsado.
+                </div>
+
+                <div class="d-grid d-md-flex justify-content-md-end gap-2 mt-4">
+                    <a href="{{ url_for('produccion_platano.index') }}" class="btn btn-outline-secondary">
+                        Cancelar
+                    </a>
+
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save-fill me-1"></i>
+                        Guardar embolsado
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

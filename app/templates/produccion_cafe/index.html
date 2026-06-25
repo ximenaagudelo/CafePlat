@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+
+{% block title %}Producción Café | CampoSuite{% endblock %}
+{% block page_title %}Producción Café{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-column flex-md-row gap-3">
+    <div>
+        <h5 class="mb-1 fw-bold text-success">
+            <i class="bi bi-cup-hot-fill me-1"></i>
+            Producción de café
+        </h5>
+
+        <p class="text-muted mb-0">
+            Registra la producción total obtenida por la finca, independiente de los jornales y trabajadores.
+        </p>
+    </div>
+
+    <div class="d-grid d-sm-flex gap-2 w-100 w-md-auto">
+        <a href="{{ url_for('produccion_cafe.nueva_produccion') }}" class="btn btn-success">
+            <i class="bi bi-plus-circle-fill me-1"></i>
+            Registrar producción
+        </a>
+
+        <a href="{{ url_for('produccion_cafe.nueva_florecida') }}" class="btn btn-outline-success">
+            <i class="bi bi-flower1 me-1"></i>
+            Registrar florecida
+        </a>
+    </div>
+</div>
+
+<!-- Indicadores -->
+<div class="row g-4 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-cup-hot-fill"></i>
+            </div>
+
+            <h6>Total café</h6>
+            <h3>{{ total_kilos|decimal_cafe }} kg</h3>
+            <small>Kilos registrados</small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-bag-check-fill"></i>
+            </div>
+
+            <h6>Arrobas</h6>
+            <h3>{{ total_arrobas|decimal_cafe }}</h3>
+            <small>Calculado automáticamente</small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-box-seam-fill"></i>
+            </div>
+
+            <h6>Cargas</h6>
+            <h3>{{ total_cargas|decimal_cafe }}</h3>
+            <small>Calculado automáticamente</small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-tree-fill"></i>
+            </div>
+
+            <h6>Cerezo / Pergamino</h6>
+            <h3>{{ total_cerezo|decimal_cafe }} / {{ total_pergamino|decimal_cafe }}</h3>
+            <small>Kilos por tipo de café</small>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-12 col-md-6 col-xl-3">
+                <label for="tipo_cafe" class="form-label">Tipo de café</label>
+
+                <select id="tipo_cafe" name="tipo_cafe" class="form-select">
+                    <option value="" {% if filtros.tipo_cafe == "" %}selected{% endif %}>
+                        Todos
+                    </option>
+
+                    <option value="cerezo" {% if filtros.tipo_cafe == "cerezo" %}selected{% endif %}>
+                        Café Cerezo
+                    </option>
+
+                    <option value="pergamino" {% if filtros.tipo_cafe == "pergamino" %}selected{% endif %}>
+                        Café Pergamino
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-3">
+                <label for="lote" class="form-label">Lote</label>
+
+                <input type="text"
+                       id="lote"
+                       name="lote"
+                       class="form-control"
+                       value="{{ filtros.lote }}"
+                       placeholder="Buscar por lote">
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-2">
+                <label for="fecha_inicio" class="form-label">Fecha inicial</label>
+
+                <input type="date"
+                       id="fecha_inicio"
+                       name="fecha_inicio"
+                       class="form-control"
+                       value="{{ filtros.fecha_inicio }}">
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-2">
+                <label for="fecha_fin" class="form-label">Fecha final</label>
+
+                <input type="date"
+                       id="fecha_fin"
+                       name="fecha_fin"
+                       class="form-control"
+                       value="{{ filtros.fecha_fin }}">
+            </div>
+
+            <div class="col-12 col-xl-2">
+                <div class="d-grid d-sm-flex gap-2">
+                    <button type="submit" class="btn btn-dark">
+                        <i class="bi bi-search me-1"></i>
+                        Filtrar
+                    </button>
+
+                    <a href="{{ url_for('produccion_cafe.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-eraser me-1"></i>
+                        Limpiar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- Producciones -->
+    <div class="col-12 col-xl-8">
+        <div class="panel-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="section-title mb-0">Producciones registradas</h5>
+
+                <span class="badge-soft-success">
+                    {{ finca_activa.nombre if finca_activa else "CampoSuite" }}
+                </span>
+            </div>
+
+            <!-- Tabla escritorio -->
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Lote</th>
+                            <th>Tipo</th>
+                            <th>Kilos</th>
+                            <th>Arrobas</th>
+                            <th>Cargas</th>
+                            <th style="width: 210px;">Acción</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for produccion in producciones %}
+                            <tr>
+                                <td>{{ produccion.fecha.strftime("%d/%m/%Y") }}</td>
+
+                                <td>
+                                    <strong>{{ produccion.lote }}</strong>
+                                </td>
+
+                                <td>
+                                    {% if produccion.tipo_cafe == "cerezo" %}
+                                        <span class="badge bg-success">Café Cerezo</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Café Pergamino</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>{{ produccion.kilos_totales|decimal_cafe }} kg</td>
+                                <td>{{ produccion.arrobas|decimal_cafe }}</td>
+                                <td>{{ produccion.cargas|decimal_cafe }}</td>
+
+                                <td>
+                                    <div class="table-actions">
+                                        <a href="{{ url_for('produccion_cafe.editar_produccion', produccion_id=produccion.id) }}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil-square me-1"></i>
+                                            Editar
+                                        </a>
+
+                                        <form action="{{ url_for('produccion_cafe.eliminar_produccion', produccion_id=produccion.id) }}"
+                                              method="POST"
+                                              onsubmit="return confirm('¿Seguro que deseas eliminar esta producción de café? Esta acción no se puede deshacer.');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash3 me-1"></i>
+                                                Eliminar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Todavía no hay producción de café registrada.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tarjetas móvil -->
+            <div class="d-md-none">
+                {% for produccion in producciones %}
+                    <div class="mobile-record-card">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <div class="record-title">
+                                    {{ produccion.lote }}
+                                </div>
+
+                                <div class="record-meta">
+                                    {{ produccion.fecha.strftime("%d/%m/%Y") }} ·
+                                    {% if produccion.tipo_cafe == "cerezo" %}
+                                        Café Cerezo
+                                    {% else %}
+                                        Café Pergamino
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="badge bg-success">
+                                    {{ produccion.kilos_totales|decimal_cafe }} kg
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="row g-2 small">
+                                <div class="col-6">
+                                    <span class="text-muted d-block">Arrobas</span>
+                                    <strong>{{ produccion.arrobas|decimal_cafe }}</strong>
+                                </div>
+
+                                <div class="col-6">
+                                    <span class="text-muted d-block">Cargas</span>
+                                    <strong>{{ produccion.cargas|decimal_cafe }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if produccion.observaciones %}
+                            <div class="mt-3 small text-muted">
+                                {{ produccion.observaciones }}
+                            </div>
+                        {% endif %}
+
+                        <div class="record-actions">
+                            <a href="{{ url_for('produccion_cafe.editar_produccion', produccion_id=produccion.id) }}"
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-pencil-square me-1"></i>
+                                Editar
+                            </a>
+
+                            <form action="{{ url_for('produccion_cafe.eliminar_produccion', produccion_id=produccion.id) }}"
+                                  method="POST"
+                                  onsubmit="return confirm('¿Seguro que deseas eliminar esta producción de café? Esta acción no se puede deshacer.');">
+                                <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                    <i class="bi bi-trash3 me-1"></i>
+                                    Eliminar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Todavía no hay producción de café registrada.
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Florecidas -->
+    <div class="col-12 col-xl-4">
+        <div class="panel-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="section-title mb-0">Florecidas</h5>
+
+                <a href="{{ url_for('produccion_cafe.nueva_florecida') }}"
+                   class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Nueva
+                </a>
+            </div>
+
+            {% for item in florecidas_estimadas %}
+                <div class="mobile-record-card">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div>
+                            <div class="record-title">
+                                {{ item.florecida.lote }}
+                            </div>
+
+                            <div class="record-meta">
+                                Florecida: {{ item.florecida.fecha_florecida.strftime("%d/%m/%Y") }}
+                            </div>
+                        </div>
+
+                        <span class="badge {{ item.badge }}">
+                            {{ item.estado }}
+                        </span>
+                    </div>
+
+                    <div class="mt-3 small">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Inicio cosecha</span>
+                            <strong>{{ item.fecha_inicio_cosecha.strftime("%d/%m/%Y") }}</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Fin estimado</span>
+                            <strong>{{ item.fecha_fin_cosecha.strftime("%d/%m/%Y") }}</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <span>Días faltantes</span>
+                            <strong>{{ item.dias_faltantes }}</strong>
+                        </div>
+                    </div>
+
+                    {% if item.florecida.observaciones %}
+                        <div class="mt-3 small text-muted">
+                            {{ item.florecida.observaciones }}
+                        </div>
+                    {% endif %}
+
+                    <div class="record-actions">
+                        <a href="{{ url_for('produccion_cafe.editar_florecida', florecida_id=item.florecida.id) }}"
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-pencil-square me-1"></i>
+                            Editar
+                        </a>
+
+                        <form action="{{ url_for('produccion_cafe.eliminar_florecida', florecida_id=item.florecida.id) }}"
+                              method="POST"
+                              onsubmit="return confirm('¿Seguro que deseas eliminar esta florecida? Esta acción no se puede deshacer.');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                <i class="bi bi-trash3 me-1"></i>
+                                Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-flower1 me-1"></i>
+                    Todavía no hay florecidas registradas.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

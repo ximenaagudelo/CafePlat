@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes - CampoSuite{% endblock %}
+{% block page_title %}Reportes{% endblock %}
+
+{% macro dinero(valor) -%}
+$ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
+{%- endmacro %}
+
+{% macro numero(valor) -%}
+{{ "{:,.2f}".format(valor or 0).replace(",", "X").replace(".", ",").replace("X", ".") }}
+{%- endmacro %}
+
+{% macro fecha(valor) -%}
+{% if valor %}
+    {{ valor.strftime("%d/%m/%Y") }}
+{% else %}
+    -
+{% endif %}
+{%- endmacro %}
+
+{% block content %}
+
+<div class="container-fluid py-3">
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+        <div>
+            <h1 class="h3 mb-1">Reportes</h1>
+            <p class="text-muted mb-0">
+                Consulta producción, ventas e insumos de la finca por mes o por año.
+            </p>
+        </div>
+
+        <a
+            href="{{ url_for('reportes.exportar_excel', anio=anio, mes=mes or '') }}"
+            class="btn btn-success"
+        >
+            <i class="bi bi-file-earmark-excel"></i>
+            Exportar Excel
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Año</label>
+                    <select name="anio" class="form-select">
+                        {% for item_anio in anios %}
+                            <option value="{{ item_anio }}" {% if item_anio == anio %}selected{% endif %}>
+                                {{ item_anio }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Mes</label>
+                    <select name="mes" class="form-select">
+                        <option value="">Todo el año</option>
+
+                        {% for item_mes in meses %}
+                            <option
+                                value="{{ item_mes.valor }}"
+                                {% if mes == item_mes.valor %}selected{% endif %}
+                            >
+                                {{ item_mes.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i>
+                        Consultar
+                    </button>
+
+                    <a href="{{ url_for('reportes.index') }}" class="btn btn-outline-secondary">
+                        Limpiar
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <div class="alert alert-light border shadow-sm mb-4">
+        <strong>Periodo consultado:</strong> {{ periodo_label }}
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-12 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <small class="text-muted">Café producido</small>
+                    <h3 class="mb-0">{{ numero(resumen.total_cafe_kg) }} kg</h3>
+                    <small>{{ numero(resumen.total_cafe_arrobas) }} arrobas</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <small class="text-muted">Plátano / banano / comino</small>
+                    <h3 class="mb-0">{{ numero(resumen.total_agricola_kg) }} kg</h3>
+                    <small>{{ resumen.total_racimos }} racimos</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <small class="text-muted">Ventas recibidas</small>
+                    <h3 class="mb-0">{{ dinero(resumen.total_ventas) }}</h3>
+                    <small>Diferencia: {{ dinero(resumen.diferencia_ventas) }}</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <small class="text-muted">Inventario actual</small>
+                    <h3 class="mb-0">{{ dinero(resumen.valor_estimado_inventario) }}</h3>
+                    <small>{{ resumen.total_elementos_inventario }} elementos</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <small class="text-muted">Ventas café</small>
+                    <h4 class="mb-0">{{ dinero(resumen.ventas_cafe) }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <small class="text-muted">Ventas plátano / banano / comino</small>
+                    <h4 class="mb-0">{{ dinero(resumen.ventas_agricolas) }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <small class="text-muted">Movimientos de insumos</small>
+                    <h4 class="mb-0">{{ resumen.cantidad_movimientos }}</h4>
+                    <small>
+                        Entradas: {{ dinero(resumen.total_entradas_valor) }}
+                        · Salidas: {{ dinero(resumen.total_salidas_valor) }}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <strong>Producción</strong>
+        </div>
+
+        <div class="card-body p-0">
+            {% if filas_produccion %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Producto</th>
+                                <th>Lote</th>
+                                <th class="text-end">Kilos</th>
+                                <th class="text-end">Arrobas</th>
+                                <th class="text-end">Racimos</th>
+                                <th class="text-end">Kg/racimo</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for fila in filas_produccion %}
+                                <tr>
+                                    <td>{{ fecha(fila.fecha) }}</td>
+                                    <td>{{ fila.tipo_produccion }}</td>
+                                    <td>{{ fila.producto }}</td>
+                                    <td>{{ fila.lote }}</td>
+                                    <td class="text-end">{{ numero(fila.kilos) }}</td>
+                                    <td class="text-end">
+                                        {% if fila.arrobas != "" %}
+                                            {{ numero(fila.arrobas) }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">{{ fila.racimos or "-" }}</td>
+                                    <td class="text-end">
+                                        {% if fila.kg_promedio_racimo != "" %}
+                                            {{ numero(fila.kg_promedio_racimo) }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-4 text-muted">
+                    No hay producción registrada para este periodo.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <strong>Ventas</strong>
+        </div>
+
+        <div class="card-body p-0">
+            {% if filas_ventas %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Producto</th>
+                                <th>Tipo</th>
+                                <th class="text-end">Kilos</th>
+                                <th class="text-end">Arrobas</th>
+                                <th class="text-end">Racimos</th>
+                                <th class="text-end">Precio base</th>
+                                <th class="text-end">Esperado</th>
+                                <th class="text-end">Recibido</th>
+                                <th class="text-end">Diferencia</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for fila in filas_ventas %}
+                                <tr>
+                                    <td>{{ fecha(fila.fecha) }}</td>
+                                    <td>{{ fila.producto }}</td>
+                                    <td>{{ fila.tipo }}</td>
+                                    <td class="text-end">{{ numero(fila.kilos) }}</td>
+                                    <td class="text-end">
+                                        {% if fila.arrobas != "" %}
+                                            {{ numero(fila.arrobas) }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">{{ fila.racimos or "-" }}</td>
+                                    <td class="text-end">{{ dinero(fila.precio_unitario) }}</td>
+                                    <td class="text-end">{{ dinero(fila.valor_esperado) }}</td>
+                                    <td class="text-end">{{ dinero(fila.valor_recibido) }}</td>
+                                    <td class="text-end">{{ dinero(fila.diferencia) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-4 text-muted">
+                    No hay ventas registradas para este periodo.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <strong>Movimientos de insumos</strong>
+        </div>
+
+        <div class="card-body p-0">
+            {% if filas_movimientos %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Elemento</th>
+                                <th>Categoría</th>
+                                <th>Movimiento</th>
+                                <th class="text-end">Cantidad</th>
+                                <th>Unidad</th>
+                                <th class="text-end">Costo unitario</th>
+                                <th class="text-end">Valor</th>
+                                <th>Motivo</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for fila in filas_movimientos %}
+                                <tr>
+                                    <td>{{ fecha(fila.fecha) }}</td>
+                                    <td>{{ fila.elemento }}</td>
+                                    <td>{{ fila.categoria }}</td>
+                                    <td>
+                                        {% if fila.tipo_movimiento == "Entrada" %}
+                                            <span class="badge text-bg-success">Entrada</span>
+                                        {% elif fila.tipo_movimiento == "Salida" %}
+                                            <span class="badge text-bg-warning">Salida</span>
+                                        {% else %}
+                                            <span class="badge text-bg-secondary">Ajuste</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">{{ numero(fila.cantidad) }}</td>
+                                    <td>{{ fila.unidad }}</td>
+                                    <td class="text-end">{{ dinero(fila.costo_unitario) }}</td>
+                                    <td class="text-end">{{ dinero(fila.valor_movimiento) }}</td>
+                                    <td>{{ fila.motivo or "-" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-4 text-muted">
+                    No hay movimientos de insumos registrados para este periodo.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+            <strong>Existencias actuales</strong>
+        </div>
+
+        <div class="card-body p-0">
+            {% if filas_existencias %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Elemento</th>
+                                <th>Categoría</th>
+                                <th class="text-end">Disponible</th>
+                                <th>Unidad</th>
+                                <th class="text-end">Costo unitario</th>
+                                <th class="text-end">Valor estimado</th>
+                                <th>Proveedor</th>
+                                <th>Ubicación</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for fila in filas_existencias %}
+                                <tr>
+                                    <td>{{ fila.elemento }}</td>
+                                    <td>{{ fila.categoria }}</td>
+                                    <td class="text-end">{{ numero(fila.cantidad_disponible) }}</td>
+                                    <td>{{ fila.unidad }}</td>
+                                    <td class="text-end">{{ dinero(fila.costo_unitario) }}</td>
+                                    <td class="text-end">{{ dinero(fila.valor_estimado) }}</td>
+                                    <td>{{ fila.proveedor or "-" }}</td>
+                                    <td>{{ fila.ubicacion or "-" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-4 text-muted">
+                    No hay elementos de inventario registrados.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

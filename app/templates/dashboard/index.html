@@ -1,0 +1,753 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | CampoSuite{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% macro dinero(valor) -%}
+${{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
+{%- endmacro %}
+
+{% macro decimal(valor) -%}
+{{ "{:,.2f}".format(valor or 0).replace(",", "X").replace(".", ",").replace("X", ".") }}
+{%- endmacro %}
+
+{% macro entero(valor) -%}
+{{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
+{%- endmacro %}
+
+{% block content %}
+
+<!-- Identidad de finca activa -->
+<div class="panel-card mb-4 dashboard-finca-header">
+    <div class="row align-items-center g-3">
+        <div class="col-12 col-md-auto">
+            <div class="dashboard-finca-logo">
+                {% if finca_activa and finca_activa.logo %}
+                    <img src="{{ url_for('static', filename=finca_activa.logo) }}"
+                         alt="{{ finca_activa.nombre }}">
+                {% else %}
+                    <i class="bi bi-tree-fill"></i>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-12 col-md">
+            <span class="dashboard-finca-label">Finca activa</span>
+
+            <h3 class="dashboard-finca-title">
+                {{ finca_activa.nombre if finca_activa else "Sin finca asociada" }}
+            </h3>
+
+            <p class="dashboard-finca-text mb-0">
+                Bienvenido, <strong>{{ current_user.nombre }}</strong>.
+                Este es el resumen productivo, operativo y financiero de tu finca.
+            </p>
+
+            {% if finca_activa and finca_activa.ubicacion %}
+                <small class="dashboard-finca-location">
+                    <i class="bi bi-geo-alt-fill me-1"></i>
+                    {{ finca_activa.ubicacion }}
+                </small>
+            {% endif %}
+        </div>
+
+        <div class="col-12 col-md-auto">
+            <span class="badge-soft-success">
+                <i class="bi bi-check-circle-fill me-1"></i>
+                Sistema activo
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen principal -->
+<div class="row g-4 mb-4">
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-cup-hot-fill"></i>
+            </div>
+
+            <h6>Producción café</h6>
+
+            <h3>{{ decimal(produccion_cafe_total) }} kg</h3>
+
+            <small>
+                {{ decimal(produccion_cafe_arrobas) }} arrobas producidas
+            </small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-basket-fill"></i>
+            </div>
+
+            <h6>Producción plátano</h6>
+
+            <h3>{{ decimal(produccion_platano_kilos) }} kg</h3>
+
+            <small>
+                {{ entero(produccion_platano_racimos) }} racimos registrados
+            </small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-cash-coin"></i>
+            </div>
+
+            <h6>Ventas totales</h6>
+
+            <h3>{{ dinero(total_ventas) }}</h3>
+
+            <small>
+                {{ dinero(ventas_mes) }} vendidos este mes
+            </small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+
+            <h6>Balance estimado</h6>
+
+            <h3 class="{% if balance_estimado >= 0 %}text-success{% else %}text-danger{% endif %}">
+                {{ dinero(balance_estimado) }}
+            </h3>
+
+            <small>
+                Ventas - costos registrados
+            </small>
+        </div>
+    </div>
+
+</div>
+
+<!-- Producción detallada -->
+<div class="row g-4 mb-4">
+
+    <div class="col-12 col-xl-6">
+        <div class="panel-card h-100">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+                <h5 class="section-title mb-0">Producción de café</h5>
+
+                <a href="{{ url_for('produccion_cafe.index') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-cup-hot me-1"></i>
+                    Ver café
+                </a>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-6">
+                    <span class="text-muted small">Café cerezo</span>
+                    <h5 class="mb-0">{{ decimal(produccion_cafe_cerezo) }} kg</h5>
+                </div>
+
+                <div class="col-6">
+                    <span class="text-muted small">Café pergamino</span>
+                    <h5 class="mb-0">{{ decimal(produccion_cafe_pergamino) }} kg</h5>
+                </div>
+
+                <div class="col-6">
+                    <span class="text-muted small">Total producido</span>
+                    <h5 class="mb-0">{{ decimal(produccion_cafe_total) }} kg</h5>
+                </div>
+
+                <div class="col-6">
+                    <span class="text-muted small">Arrobas</span>
+                    <h5 class="mb-0">{{ decimal(produccion_cafe_arrobas) }}</h5>
+                </div>
+            </div>
+
+            <hr>
+
+            <small class="text-muted">
+                La producción de café es independiente de los registros de trabajadores.
+            </small>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <div class="panel-card h-100">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+                <h5 class="section-title mb-0">Producción plátano / banano / comino</h5>
+
+                <a href="{{ url_for('produccion_platano.index') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-basket me-1"></i>
+                    Ver producción
+                </a>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-6">
+                    <span class="text-muted small">Kilos totales</span>
+                    <h5 class="mb-0">{{ decimal(produccion_platano_kilos) }} kg</h5>
+                </div>
+
+                <div class="col-6">
+                    <span class="text-muted small">Racimos</span>
+                    <h5 class="mb-0">{{ entero(produccion_platano_racimos) }}</h5>
+                </div>
+
+                <div class="col-6">
+                    <span class="text-muted small">Plátano</span>
+                    <h5 class="mb-0">{{ decimal(produccion_solo_platano_kilos) }} kg</h5>
+                </div>
+
+                <div class="col-6">
+                    <span class="text-muted small">Kg promedio/racimo</span>
+                    <h5 class="mb-0">{{ decimal(kg_promedio_racimo) }}</h5>
+                </div>
+
+                <div class="col-6">
+                    <span class="text-muted small">Banano</span>
+                    <h5 class="mb-0">{{ decimal(produccion_banano_kilos) }} kg</h5>
+                </div>
+
+                <div class="col-6">
+                    <span class="text-muted small">Comino</span>
+                    <h5 class="mb-0">{{ decimal(produccion_comino_kilos) }} kg</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Operación y finanzas -->
+<div class="row g-4 mb-4">
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-clipboard-check"></i>
+            </div>
+
+            <h6>Trabajos realizados</h6>
+
+            <h3>{{ entero(total_trabajos_realizados) }}</h3>
+
+            <small>
+                {{ entero(trabajos_pendientes_pago) }} pendientes por pagar
+            </small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+
+            <h6>Pendiente por pagar</h6>
+
+            <h3>{{ dinero(total_pendiente) }}</h3>
+
+            <small>
+                Mano de obra pendiente
+            </small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-check2-circle"></i>
+            </div>
+
+            <h6>Pagos realizados</h6>
+
+            <h3>{{ dinero(total_pagado) }}</h3>
+
+            <small>
+                {{ entero(trabajos_pagados) }} trabajos pagados
+            </small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-receipt-cutoff"></i>
+            </div>
+
+            <h6>Gastos e insumos</h6>
+
+            <h3>{{ dinero(total_gastos) }}</h3>
+
+            <small>
+                {{ dinero(gastos_mes) }} este mes
+            </small>
+        </div>
+    </div>
+
+</div>
+
+<!-- Ventas detalladas -->
+<div class="row g-4 mb-4">
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-cup-hot-fill"></i>
+            </div>
+
+            <h6>Ventas café</h6>
+
+            <h3>{{ dinero(ventas_cafe) }}</h3>
+
+            <small>
+                {{ decimal(kilos_cafe_vendidos) }} kg · {{ decimal(arrobas_cafe_vendidas) }} arrobas
+            </small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-basket-fill"></i>
+            </div>
+
+            <h6>Ventas plátano</h6>
+
+            <h3>{{ dinero(ventas_platano) }}</h3>
+
+            <small>
+                {{ decimal(kilos_platano_vendidos) }} kg vendidos
+            </small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-calendar-check"></i>
+            </div>
+
+            <h6>Ventas del mes</h6>
+
+            <h3>{{ dinero(ventas_mes) }}</h3>
+
+            <small>
+                Ingresos del mes actual
+            </small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-flower1"></i>
+            </div>
+
+            <h6>Insumos agrícolas</h6>
+
+            <h3>{{ dinero(total_insumos_agricolas) }}</h3>
+
+            <small>
+                Fertilizantes, químicos e insumos
+            </small>
+        </div>
+    </div>
+
+</div>
+
+<div class="row g-4">
+
+    <!-- Columna principal -->
+    <div class="col-12 col-xl-8">
+
+        <!-- Últimas ventas -->
+        <div class="panel-card">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+                <h5 class="section-title mb-0">Últimas ventas</h5>
+
+                <a href="{{ url_for('ventas.index') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-cash-coin me-1"></i>
+                    Ver ventas
+                </a>
+            </div>
+
+            <div class="table-responsive d-none d-md-block">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Producto</th>
+                            <th>Tipo</th>
+                            <th class="text-end">Kilos</th>
+                            <th class="text-end">Total recibido</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for venta in ultimas_ventas %}
+                            <tr>
+                                <td>{{ venta.fecha.strftime("%d/%m/%Y") }}</td>
+
+                                <td>
+                                    {% if venta.producto == "cafe" %}
+                                        <span class="badge text-bg-light">Café</span>
+                                    {% else %}
+                                        <span class="badge text-bg-light">Plátano / Banano / Comino</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>{{ venta.tipo_producto }}</td>
+
+                                <td class="text-end">{{ decimal(venta.kilos) }} kg</td>
+
+                                <td class="text-end">
+                                    <strong>{{ dinero(venta.valor_total) }}</strong>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-muted text-center py-4">
+                                    Todavía no hay ventas registradas.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-md-none">
+                {% for venta in ultimas_ventas %}
+                    <div class="mobile-record-card">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <div class="record-title">{{ venta.tipo_producto }}</div>
+
+                                <div class="record-meta">
+                                    {{ venta.fecha.strftime("%d/%m/%Y") }} ·
+                                    {% if venta.producto == "cafe" %}
+                                        Café
+                                    {% else %}
+                                        Plátano / Banano / Comino
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <strong>{{ dinero(venta.valor_total) }}</strong>
+                        </div>
+
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                {{ decimal(venta.kilos) }} kg vendidos
+                            </small>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-muted text-center py-4">
+                        Todavía no hay ventas registradas.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Últimas actividades -->
+        <div class="panel-card mt-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+                <h5 class="section-title mb-0">Últimos trabajos</h5>
+
+                <a href="{{ url_for('trabajadores.index') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-people me-1"></i>
+                    Ver trabajadores
+                </a>
+            </div>
+
+            <div class="table-responsive d-none d-md-block">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Actividad</th>
+                            <th>Trabajador</th>
+                            <th>Valor</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for registro in ultimos_trabajos %}
+                            <tr>
+                                <td>{{ registro.fecha.strftime("%d/%m/%Y") }}</td>
+
+                                <td>{{ registro.tipo_trabajo.replace("_", " ").title() }}</td>
+
+                                <td>
+                                    <strong>{{ registro.trabajador.nombre }}</strong>
+                                </td>
+
+                                <td>
+                                    <strong>{{ dinero(registro.total_pagar) }}</strong>
+                                </td>
+
+                                <td>
+                                    {% if registro.pagado %}
+                                        <span class="badge bg-success">Pagado</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Pendiente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-muted text-center py-4">
+                                    Todavía no hay trabajos registrados.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-md-none">
+                {% for registro in ultimos_trabajos %}
+                    <div class="mobile-record-card">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <div class="record-title">{{ registro.trabajador.nombre }}</div>
+
+                                <div class="record-meta">
+                                    {{ registro.fecha.strftime("%d/%m/%Y") }} ·
+                                    {{ registro.tipo_trabajo.replace("_", " ").title() }}
+                                </div>
+                            </div>
+
+                            <div>
+                                {% if registro.pagado %}
+                                    <span class="badge bg-success">Pagado</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Pendiente</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <span class="text-muted d-block small">Valor</span>
+                            <strong>{{ dinero(registro.total_pagar) }}</strong>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-muted text-center py-4">
+                        Todavía no hay trabajos registrados.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Últimos gastos -->
+        <div class="panel-card mt-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+                <h5 class="section-title mb-0">Últimos gastos e insumos</h5>
+
+                <a href="{{ url_for('gastos.index') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-receipt me-1"></i>
+                    Ver gastos
+                </a>
+            </div>
+
+            <div class="table-responsive d-none d-md-block">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Categoría</th>
+                            <th>Descripción</th>
+                            <th>Tipo</th>
+                            <th class="text-end">Valor</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for gasto in ultimos_gastos %}
+                            <tr>
+                                <td>{{ gasto.fecha.strftime("%d/%m/%Y") }}</td>
+
+                                <td>
+                                    <span class="badge text-bg-light">
+                                        {{ gasto.categoria }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <strong>{{ gasto.descripcion }}</strong>
+
+                                    {% if gasto.proveedor %}
+                                        <br>
+                                        <small class="text-muted">
+                                            Proveedor: {{ gasto.proveedor }}
+                                        </small>
+                                    {% endif %}
+                                </td>
+
+                                <td>{{ gasto.tipo }}</td>
+
+                                <td class="text-end">
+                                    <strong>{{ dinero(gasto.valor) }}</strong>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-muted text-center py-4">
+                                    Todavía no hay gastos registrados.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-md-none">
+                {% for gasto in ultimos_gastos %}
+                    <div class="mobile-record-card">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <div class="record-title">{{ gasto.descripcion }}</div>
+
+                                <div class="record-meta">
+                                    {{ gasto.fecha.strftime("%d/%m/%Y") }} · {{ gasto.categoria }}
+                                </div>
+                            </div>
+
+                            <strong>{{ dinero(gasto.valor) }}</strong>
+                        </div>
+
+                        <div class="mt-2">
+                            <span class="badge text-bg-light">{{ gasto.tipo }}</span>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-muted text-center py-4">
+                        Todavía no hay gastos registrados.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Columna resumen -->
+    <div class="col-12 col-xl-4">
+
+        <div class="panel-card">
+            <h5 class="section-title">Resumen financiero</h5>
+
+            <div class="d-flex justify-content-between mb-3">
+                <span>Ingresos por ventas</span>
+                <strong class="text-success">{{ dinero(total_ventas) }}</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-3">
+                <span>Ventas café</span>
+                <strong>{{ dinero(ventas_cafe) }}</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-3">
+                <span>Ventas plátano</span>
+                <strong>{{ dinero(ventas_platano) }}</strong>
+            </div>
+
+            <hr>
+
+            <div class="d-flex justify-content-between mb-3">
+                <span>Gastos e insumos</span>
+                <strong class="text-danger">{{ dinero(total_gastos) }}</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-3">
+                <span>Mano de obra</span>
+                <strong class="text-danger">{{ dinero(total_mano_obra) }}</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-3">
+                <span>Pendiente por pagar</span>
+                <strong class="text-warning">{{ dinero(total_pendiente) }}</strong>
+            </div>
+
+            <hr>
+
+            <div class="d-flex justify-content-between mb-3">
+                <span>Costos registrados</span>
+                <strong>{{ dinero(costos_registrados) }}</strong>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <span>Balance estimado</span>
+                <strong class="{% if balance_estimado >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    {{ dinero(balance_estimado) }}
+                </strong>
+            </div>
+
+            <small class="text-muted d-block mt-2">
+                Balance estimado = ventas registradas - gastos e insumos - mano de obra registrada.
+            </small>
+        </div>
+
+        <div class="panel-card mt-4">
+            <h5 class="section-title">Resumen productivo</h5>
+
+            <div class="d-flex justify-content-between mb-3">
+                <span>Café producido</span>
+                <strong>{{ decimal(produccion_cafe_total) }} kg</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-3">
+                <span>Café vendido</span>
+                <strong>{{ decimal(kilos_cafe_vendidos) }} kg</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-3">
+                <span>Plátano producido</span>
+                <strong>{{ decimal(produccion_platano_kilos) }} kg</strong>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <span>Plátano vendido</span>
+                <strong>{{ decimal(kilos_platano_vendidos) }} kg</strong>
+            </div>
+
+            <small class="text-muted d-block mt-2">
+                Este resumen compara producción registrada con ventas registradas.
+            </small>
+        </div>
+
+        <div class="panel-card mt-4">
+            <h5 class="section-title">Estado operativo</h5>
+
+            <div class="d-flex justify-content-between mb-3">
+                <span>Trabajos realizados</span>
+                <strong>{{ entero(total_trabajos_realizados) }}</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-3">
+                <span>Trabajos pendientes</span>
+                <strong>{{ entero(trabajos_pendientes_pago) }}</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-3">
+                <span>Kilos café en trabajos</span>
+                <strong>{{ decimal(total_kilos_cafe) }} kg</strong>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <span>Trabajadores registrados</span>
+                <strong>{{ entero(total_trabajadores) }}</strong>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

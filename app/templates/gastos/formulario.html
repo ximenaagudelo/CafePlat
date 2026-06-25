@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} · CampoSuite{% endblock %}
+
+{% block page_title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h5 class="mb-1">{{ titulo }}</h5>
+        <p class="text-muted mb-0">
+            Registra costos, compras e insumos asociados a la finca activa.
+        </p>
+    </div>
+
+    <a href="{{ url_for('gastos.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>
+        Volver
+    </a>
+</div>
+
+<div class="panel-card">
+    <form method="post" class="row g-3">
+        <div class="col-12 col-md-4">
+            <label class="form-label">Fecha *</label>
+            <input type="date"
+                   name="fecha"
+                   class="form-control"
+                   value="{% if gasto %}{{ gasto.fecha.isoformat() }}{% else %}{{ fecha_hoy }}{% endif %}"
+                   required>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <label class="form-label">Categoría *</label>
+            <select name="categoria" class="form-select" required>
+                <option value="">Seleccionar...</option>
+                {% for categoria in categorias %}
+                    <option value="{{ categoria }}"
+                            {% if gasto and gasto.categoria == categoria %}selected{% endif %}>
+                        {{ categoria }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <label class="form-label">Tipo de gasto o insumo *</label>
+            <select name="tipo" class="form-select" required>
+                <option value="">Seleccionar...</option>
+                {% for tipo in tipos %}
+                    <option value="{{ tipo }}"
+                            {% if gasto and gasto.tipo == tipo %}selected{% endif %}>
+                        {{ tipo }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label">Descripción *</label>
+            <input type="text"
+                   name="descripcion"
+                   class="form-control"
+                   maxlength="255"
+                   value="{% if gasto %}{{ gasto.descripcion }}{% endif %}"
+                   placeholder="Ejemplo: Compra de fertilizante, pago de transporte, mantenimiento de guadaña..."
+                   required>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <label class="form-label">Proveedor</label>
+            <input type="text"
+                   name="proveedor"
+                   class="form-control"
+                   maxlength="150"
+                   value="{% if gasto and gasto.proveedor %}{{ gasto.proveedor }}{% endif %}"
+                   placeholder="Nombre del proveedor">
+        </div>
+
+        <div class="col-12 col-md-4">
+            <label class="form-label">Valor *</label>
+            <input type="text"
+                   name="valor"
+                   class="form-control"
+                   value="{% if gasto %}{{ gasto.valor }}{% endif %}"
+                   placeholder="Ejemplo: 120000"
+                   required>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <label class="form-label">Método de pago</label>
+            <select name="metodo_pago" class="form-select">
+                <option value="">Seleccionar...</option>
+                {% for metodo in metodos_pago %}
+                    <option value="{{ metodo }}"
+                            {% if gasto and gasto.metodo_pago == metodo %}selected{% endif %}>
+                        {{ metodo }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label">Observaciones</label>
+            <textarea name="observaciones"
+                      class="form-control"
+                      rows="4"
+                      placeholder="Notas adicionales del gasto o insumo...">{% if gasto and gasto.observaciones %}{{ gasto.observaciones }}{% endif %}</textarea>
+        </div>
+
+        <div class="col-12 d-flex flex-column flex-md-row gap-2 justify-content-end mt-4">
+            <a href="{{ url_for('gastos.index') }}" class="btn btn-outline-secondary">
+                Cancelar
+            </a>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i>
+                {{ texto_boton }}
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

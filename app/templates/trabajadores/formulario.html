@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}{{ accion }} | CampoSuite{% endblock %}
+
+{% block page_title %}{{ accion }}{% endblock %}
+
+{% block content %}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <h5 class="mb-1 fw-bold text-success">
+                    <i class="bi bi-person-badge me-1"></i>
+                    Datos del trabajador
+                </h5>
+                <p class="text-muted mb-0">
+                    Registra o actualiza la información básica del trabajador de la finca.
+                </p>
+            </div>
+
+            <a href="{{ url_for('trabajadores.index') }}"
+               class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i>
+                Volver
+            </a>
+        </div>
+
+        <form method="POST" autocomplete="off">
+            <div class="mb-3">
+                <label for="nombre" class="form-label">
+                    Nombre del trabajador
+                </label>
+
+                <input type="text"
+                       id="nombre"
+                       name="nombre"
+                       class="form-control"
+                       value="{{ trabajador.nombre if trabajador else '' }}"
+                       placeholder="Ej: Juan Pérez"
+                       required
+                       autofocus>
+            </div>
+
+            {% if trabajador %}
+            <div class="mb-4">
+                <label for="estado" class="form-label">
+                    Estado
+                </label>
+
+                <select id="estado" name="estado" class="form-select">
+                    <option value="activo" {% if trabajador.estado == "activo" %}selected{% endif %}>
+                        Activo
+                    </option>
+
+                    <option value="inactivo" {% if trabajador.estado == "inactivo" %}selected{% endif %}>
+                        Inactivo
+                    </option>
+                </select>
+
+                <div class="form-text">
+                    Puedes marcar como inactivo a un trabajador que ya no realiza labores en la finca.
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="d-grid d-sm-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Guardar
+                </button>
+
+                <a href="{{ url_for('trabajadores.index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i>
+                    Cancelar
+                </a>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

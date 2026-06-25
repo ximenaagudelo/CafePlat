@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-3">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Registrar movimiento</h1>
+            <p class="text-muted mb-0">
+                {{ item.nombre }} · Disponible: {{ item.cantidad_disponible }} {{ item.unidad_medida }}
+            </p>
+        </div>
+
+        <a href="{{ url_for('inventario.index') }}" class="btn btn-outline-secondary">
+            Volver
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+
+            <form method="POST" class="row g-3">
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Fecha *</label>
+                    <input
+                        type="date"
+                        name="fecha"
+                        class="form-control"
+                        required
+                        value="{{ hoy.isoformat() }}"
+                    >
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Tipo de movimiento *</label>
+                    <select name="tipo_movimiento" class="form-select" required>
+                        <option value="">Seleccionar</option>
+                        <option value="entrada">Entrada</option>
+                        <option value="salida">Salida</option>
+                        <option value="ajuste">Ajuste de cantidad</option>
+                    </select>
+                    <small class="text-muted">
+                        En ajuste, la cantidad será la nueva existencia disponible.
+                    </small>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Cantidad *</label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        name="cantidad"
+                        class="form-control"
+                        required
+                    >
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Costo unitario</label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        name="costo_unitario"
+                        class="form-control"
+                        value="{{ item.costo_unitario or 0 }}"
+                    >
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Proveedor</label>
+                    <input
+                        type="text"
+                        name="proveedor"
+                        class="form-control"
+                        value="{{ item.proveedor or '' }}"
+                    >
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">Motivo</label>
+                    <input
+                        type="text"
+                        name="motivo"
+                        class="form-control"
+                        placeholder="Compra, uso en lote, ajuste, préstamo..."
+                    >
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Observaciones</label>
+                    <textarea
+                        name="observaciones"
+                        class="form-control"
+                        rows="3"
+                    ></textarea>
+                </div>
+
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        Registrar movimiento
+                    </button>
+
+                    <a href="{{ url_for('inventario.index') }}" class="btn btn-outline-secondary">
+                        Cancelar
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

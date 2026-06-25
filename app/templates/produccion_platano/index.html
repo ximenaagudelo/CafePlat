@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block title %}Producción Plátano | CampoSuite{% endblock %}
+{% block page_title %}Producción Plátano{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-column flex-md-row gap-3">
+    <div>
+        <h5 class="mb-1 fw-bold text-success">
+            <i class="bi bi-basket-fill me-1"></i>
+            Producción de plátano y derivados
+        </h5>
+
+        <p class="text-muted mb-0">
+            Registra cosechas, racimos, kilos equivalentes y embolsados de la finca activa.
+        </p>
+    </div>
+
+    <div class="d-grid d-sm-flex gap-2 w-100 w-md-auto">
+        <a href="{{ url_for('produccion_platano.nueva_produccion') }}" class="btn btn-success">
+            <i class="bi bi-plus-circle-fill me-1"></i>
+            Registrar producción
+        </a>
+
+        <a href="{{ url_for('produccion_platano.nuevo_embolsado') }}" class="btn btn-outline-success">
+            <i class="bi bi-bag-plus-fill me-1"></i>
+            Registrar embolsado
+        </a>
+    </div>
+</div>
+
+<!-- Indicadores -->
+<div class="row g-4 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-basket-fill"></i>
+            </div>
+
+            <h6>Racimos producidos</h6>
+            <h3>{{ total_racimos|entero_platano }}</h3>
+            <small>Total registrado con filtros</small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-speedometer2"></i>
+            </div>
+
+            <h6>Kilos equivalentes</h6>
+            <h3>{{ total_kilos|decimal_platano }} kg</h3>
+            <small>Peso total estimado/registrado</small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-bar-chart-fill"></i>
+            </div>
+
+            <h6>Kg por racimo</h6>
+            <h3>{{ kilos_por_racimo_promedio|decimal_platano }}</h3>
+            <small>Promedio según registros</small>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="icon">
+                <i class="bi bi-bag-check-fill"></i>
+            </div>
+
+            <h6>Racimos embolsados</h6>
+            <h3>{{ total_embolsados|entero_platano }}</h3>
+            <small>Seguimiento de maduración</small>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-12 col-md-6 col-xl-3">
+                <label for="tipo_cultivo" class="form-label">Tipo de cultivo</label>
+
+                <select id="tipo_cultivo" name="tipo_cultivo" class="form-select">
+                    <option value="" {% if filtros.tipo_cultivo == "" %}selected{% endif %}>
+                        Todos
+                    </option>
+
+                    {% for valor, etiqueta in tipos_cultivo.items() %}
+                        <option value="{{ valor }}"
+                            {% if filtros.tipo_cultivo == valor %}selected{% endif %}>
+                            {{ etiqueta }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-3">
+                <label for="lote" class="form-label">Lote</label>
+
+                <input type="text"
+                       id="lote"
+                       name="lote"
+                       class="form-control"
+                       value="{{ filtros.lote }}"
+                       placeholder="Buscar por lote">
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-2">
+                <label for="fecha_inicio" class="form-label">Fecha inicial</label>
+
+                <input type="date"
+                       id="fecha_inicio"
+                       name="fecha_inicio"
+                       class="form-control"
+                       value="{{ filtros.fecha_inicio }}">
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-2">
+                <label for="fecha_fin" class="form-label">Fecha final</label>
+
+                <input type="date"
+                       id="fecha_fin"
+                       name="fecha_fin"
+                       class="form-control"
+                       value="{{ filtros.fecha_fin }}">
+            </div>
+
+            <div class="col-12 col-xl-2">
+                <div class="d-grid d-sm-flex gap-2">
+                    <button type="submit" class="btn btn-dark">
+                        <i class="bi bi-search me-1"></i>
+                        Filtrar
+                    </button>
+
+                    <a href="{{ url_for('produccion_platano.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-eraser me-1"></i>
+                        Limpiar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- Producciones -->
+    <div class="col-12 col-xl-8">
+        <div class="panel-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="section-title mb-0">Producciones registradas</h5>
+
+                <span class="badge-soft-success">
+                    {{ finca_activa.nombre if finca_activa else "CampoSuite" }}
+                </span>
+            </div>
+
+            <!-- Tabla escritorio -->
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Lote</th>
+                            <th>Cultivo</th>
+                            <th>Racimos</th>
+                            <th>Kilos</th>
+                            <th>Kg/Racimo</th>
+                            <th style="width: 210px;">Acción</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for produccion in producciones %}
+                            <tr>
+                                <td>{{ produccion.fecha.strftime("%d/%m/%Y") }}</td>
+
+                                <td>
+                                    <strong>{{ produccion.lote }}</strong>
+                                </td>
+
+                                <td>
+                                    <span class="badge bg-success">
+                                        {{ etiqueta_tipo_cultivo(produccion.tipo_cultivo) }}
+                                    </span>
+                                </td>
+
+                                <td>{{ produccion.racimos|entero_platano }}</td>
+                                <td>{{ produccion.kilos|decimal_platano }} kg</td>
+                                <td>{{ produccion.kilos_por_racimo|decimal_platano }}</td>
+
+                                <td>
+                                    <div class="table-actions">
+                                        <a href="{{ url_for('produccion_platano.editar_produccion', produccion_id=produccion.id) }}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil-square me-1"></i>
+                                            Editar
+                                        </a>
+
+                                        <form action="{{ url_for('produccion_platano.eliminar_produccion', produccion_id=produccion.id) }}"
+                                              method="POST"
+                                              onsubmit="return confirm('¿Seguro que deseas eliminar esta producción? Esta acción no se puede deshacer.');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash3 me-1"></i>
+                                                Eliminar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Todavía no hay producción de plátano o derivados registrada.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tarjetas móvil -->
+            <div class="d-md-none">
+                {% for produccion in producciones %}
+                    <div class="mobile-record-card">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <div class="record-title">
+                                    {{ produccion.lote }}
+                                </div>
+
+                                <div class="record-meta">
+                                    {{ produccion.fecha.strftime("%d/%m/%Y") }} ·
+                                    {{ etiqueta_tipo_cultivo(produccion.tipo_cultivo) }}
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="badge bg-success">
+                                    {{ produccion.racimos|entero_platano }} racimos
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <div class="row g-2 small">
+                                <div class="col-6">
+                                    <span class="text-muted d-block">Kilos</span>
+                                    <strong>{{ produccion.kilos|decimal_platano }} kg</strong>
+                                </div>
+
+                                <div class="col-6">
+                                    <span class="text-muted d-block">Kg/Racimo</span>
+                                    <strong>{{ produccion.kilos_por_racimo|decimal_platano }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if produccion.observaciones %}
+                            <div class="mt-3 small text-muted">
+                                {{ produccion.observaciones }}
+                            </div>
+                        {% endif %}
+
+                        <div class="record-actions">
+                            <a href="{{ url_for('produccion_platano.editar_produccion', produccion_id=produccion.id) }}"
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-pencil-square me-1"></i>
+                                Editar
+                            </a>
+
+                            <form action="{{ url_for('produccion_platano.eliminar_produccion', produccion_id=produccion.id) }}"
+                                  method="POST"
+                                  onsubmit="return confirm('¿Seguro que deseas eliminar esta producción? Esta acción no se puede deshacer.');">
+                                <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                    <i class="bi bi-trash3 me-1"></i>
+                                    Eliminar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Todavía no hay producción de plátano o derivados registrada.
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Embolsados -->
+    <div class="col-12 col-xl-4">
+        <div class="panel-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="section-title mb-0">Embolsados</h5>
+
+                <a href="{{ url_for('produccion_platano.nuevo_embolsado') }}"
+                   class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Nuevo
+                </a>
+            </div>
+
+            {% for item in embolsados_estimados %}
+                <div class="mobile-record-card">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div>
+                            <div class="record-title">
+                                {{ item.embolsado.lote }}
+                            </div>
+
+                            <div class="record-meta">
+                                Embolsado: {{ item.embolsado.fecha_embolsado.strftime("%d/%m/%Y") }}
+                            </div>
+                        </div>
+
+                        <span class="badge {{ item.badge }}">
+                            {{ item.estado }}
+                        </span>
+                    </div>
+
+                    <div class="mt-3 small">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Cultivo</span>
+                            <strong>{{ etiqueta_tipo_cultivo(item.embolsado.tipo_cultivo) }}</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Racimos</span>
+                            <strong>{{ item.embolsado.racimos_embolsados|entero_platano }}</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Corte estimado</span>
+                            <strong>
+                                {% if item.fecha_corte %}
+                                    {{ item.fecha_corte.strftime("%d/%m/%Y") }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <span>Días faltantes</span>
+                            <strong>{{ item.dias_faltantes }}</strong>
+                        </div>
+                    </div>
+
+                    {% if item.embolsado.observaciones %}
+                        <div class="mt-3 small text-muted">
+                            {{ item.embolsado.observaciones }}
+                        </div>
+                    {% endif %}
+
+                    <div class="record-actions">
+                        <a href="{{ url_for('produccion_platano.editar_embolsado', embolsado_id=item.embolsado.id) }}"
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-pencil-square me-1"></i>
+                            Editar
+                        </a>
+
+                        <form action="{{ url_for('produccion_platano.eliminar_embolsado', embolsado_id=item.embolsado.id) }}"
+                              method="POST"
+                              onsubmit="return confirm('¿Seguro que deseas eliminar este embolsado? Esta acción no se puede deshacer.');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                <i class="bi bi-trash3 me-1"></i>
+                                Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-bag-plus-fill me-1"></i>
+                    Todavía no hay embolsados registrados.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
