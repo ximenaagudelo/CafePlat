@@ -13,7 +13,20 @@ auth_bp = Blueprint(
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
+    # Usuario que ya tiene una sesión abierta.
     if current_user.is_authenticated:
+        if current_user.is_admin:
+            return redirect(url_for("admin.index"))
+
+        if not current_user.finca:
+            logout_user()
+            flash(
+                "Tu usuario no tiene una finca asociada. "
+                "Contacta al administrador.",
+                "warning"
+            )
+            return redirect(url_for("auth.login"))
+
         return redirect(url_for("dashboard.index"))
 
     if request.method == "POST":
@@ -37,8 +50,22 @@ def login():
             flash("Usuario o contraseña incorrectos.", "danger")
             return redirect(url_for("auth.login"))
 
-        login_user(usuario)
+        # El administrador puede entrar sin finca.
+        if usuario.is_admin:
+            login_user(usuario)
+            flash("Sesión iniciada correctamente.", "success")
+            return redirect(url_for("admin.index"))
 
+        # Los usuarios normales necesitan una finca válida.
+        if not usuario.finca:
+            flash(
+                "Tu usuario no tiene una finca asociada. "
+                "Contacta al administrador.",
+                "warning"
+            )
+            return redirect(url_for("auth.login"))
+
+        login_user(usuario)
         flash("Sesión iniciada correctamente.", "success")
         return redirect(url_for("dashboard.index"))
 

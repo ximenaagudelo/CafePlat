@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if finca %}Editar Finca: {{ finca.nombre }}{% else %}Nueva Finca{% endif %} - CaféPlat
+{% endblock %}
+
+{% block page_title %}
+    {% if finca %}Editar Finca{% else %}Nueva Finca{% endif %}
+{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('admin.fincas') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+    <i class="bi bi-arrow-left"></i>
+    <span>Volver a Fincas</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-7">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="card-title mb-0 fw-bold">
+                    <i class="bi {% if finca %}bi-pencil-square{% else %}bi-plus-circle{% endif %} me-2 text-primary"></i>
+                    {% if finca %}Modificar Información de la Finca{% else %}Registrar Nueva Finca{% endif %}
+                </h5>
+            </div>
+
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <!-- Código y Nombre -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-5">
+                            <label for="codigo" class="form-label fw-semibold">
+                                Código de la Finca <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control text-uppercase"
+                                   id="codigo"
+                                   name="codigo"
+                                   maxlength="50"
+                                   required
+                                   placeholder="Ej: FINCA_01"
+                                   value="{{ codigo if codigo is defined and codigo is not none else (finca.codigo if finca else '') }}">
+                            <div class="form-text small">Identificador único (se guardará en mayúsculas).</div>
+                        </div>
+
+                        <div class="col-12 col-md-7">
+                            <label for="nombre" class="form-label fw-semibold">
+                                Nombre de la Finca <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="nombre"
+                                   name="nombre"
+                                   maxlength="150"
+                                   required
+                                   placeholder="Ej: Hacienda Santa Elena"
+                                   value="{{ nombre if nombre is defined and nombre is not none else (finca.nombre if finca else '') }}">
+                            <div class="form-text small">Nombre descriptivo o comercial.</div>
+                        </div>
+                    </div>
+
+                    <!-- Propietario y Ubicación -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <label for="propietario" class="form-label fw-semibold">
+                                Propietario
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="propietario"
+                                   name="propietario"
+                                   maxlength="150"
+                                   placeholder="Nombre del propietario o responsable"
+                                   value="{{ propietario if propietario is defined and propietario is not none else (finca.propietario if finca and finca.propietario else '') }}">
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="ubicacion" class="form-label fw-semibold">
+                                Ubicación
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="ubicacion"
+                                   name="ubicacion"
+                                   maxlength="255"
+                                   placeholder="Vereda, Municipio, Departamento"
+                                   value="{{ ubicacion if ubicacion is defined and ubicacion is not none else (finca.ubicacion if finca and finca.ubicacion else '') }}">
+                        </div>
+                    </div>
+
+                    <!-- Logo -->
+                    <div class="mb-4">
+                        <label for="logo" class="form-label fw-semibold">
+                            Logo de la Finca (PNG, máx. 2 MB)
+                        </label>
+
+                        {% if finca and finca.logo %}
+                            <div class="d-flex align-items-center gap-3 p-3 mb-2 bg-light rounded-3 border">
+                                <img src="{{ url_for('static', filename=finca.logo) }}"
+                                     alt="{{ finca.nombre }}"
+                                     class="rounded border bg-white"
+                                     style="width: 56px; height: 56px; object-fit: cover;">
+                                <div>
+                                    <div class="small fw-semibold text-dark">Logo actual asignado</div>
+                                    <div class="small text-muted">Si no seleccionas un nuevo archivo, se conservará este logo.</div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <input type="file"
+                               class="form-control"
+                               id="logo"
+                               name="logo"
+                               accept=".png,image/png">
+                        <div class="form-text small">
+                            Debe ser un archivo en formato PNG real de hasta 2 MB.
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{{ url_for('admin.fincas') }}" class="btn btn-outline-secondary">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1">
+                            <i class="bi bi-check-lg"></i>
+                            <span>{% if finca %}Actualizar Finca{% else %}Guardar Finca{% endif %}</span>
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -18,7 +18,7 @@ def create_app():
 
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
-    login_manager.login_message = "Debes iniciar sesión para acceder a CampoSuite."
+    login_manager.login_message = "Debes iniciar sesión para acceder a CaféPlat."
     login_manager.login_message_category = "warning"
 
     from app import models
@@ -54,6 +54,9 @@ def create_app():
 
     from app.routes.reportes import reportes_bp
     app.register_blueprint(reportes_bp)
+
+    from app.routes.admin import admin_bp
+    app.register_blueprint(admin_bp)
 
 
 

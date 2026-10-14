@@ -18,3 +18,8 @@ class Config:
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    FINCAS_UPLOAD_FOLDER = os.getenv(
+        "FINCAS_UPLOAD_FOLDER",
+        str(BASE_DIR / "app" / "static" / "uploads" / "fincas")
+    )

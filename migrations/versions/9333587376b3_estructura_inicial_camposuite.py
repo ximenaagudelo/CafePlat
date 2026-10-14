@@ -1,4 +1,4 @@
-"""estructura inicial camposuite
+"""estructura inicial CaféPlat
 
 Revision ID: 9333587376b3
 Revises: 

@@ -15,6 +15,12 @@ class Usuario(UserMixin, db.Model):
             "fincas.id",
             name="fk_usuarios_finca_id_fincas"
         ),
+        nullable=True
+    )
+
+    is_admin = db.Column(
+        db.Boolean,
+        default=False,
         nullable=False
     )
 

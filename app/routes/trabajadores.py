@@ -20,7 +20,7 @@ def obtener_finca_activa():
     """
     Obtiene la finca asociada al usuario autenticado.
 
-    Desde el Paso 14, CampoSuite ya no debe usar una finca fija temporal.
+    Desde el Paso 14, CaféPlat ya no debe usar una finca fija temporal.
     Cada usuario debe trabajar únicamente con la finca que tiene asociada.
     """
     if not current_user.is_authenticated or not current_user.finca:

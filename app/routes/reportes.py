@@ -530,7 +530,7 @@ def crear_excel(finca_activa, periodo_label, datos):
 
     resumen = datos["resumen"]
 
-    hoja_resumen.append(["CampoSuite - Reporte consolidado"])
+    hoja_resumen.append(["CaféPlat - Reporte consolidado"])
     hoja_resumen.append(["Finca", finca_activa.nombre])
     hoja_resumen.append(["Periodo", periodo_label])
     hoja_resumen.append([])
@@ -737,9 +737,9 @@ def exportar_excel():
     codigo_finca = getattr(finca_activa, "codigo", "finca")
 
     if mes:
-        nombre_archivo = f"reporte_camposuite_{codigo_finca}_{anio}_{mes:02d}.xlsx"
+        nombre_archivo = f"reporte_CaféPlat_{codigo_finca}_{anio}_{mes:02d}.xlsx"
     else:
-        nombre_archivo = f"reporte_camposuite_{codigo_finca}_{anio}.xlsx"
+        nombre_archivo = f"reporte_CaféPlat_{codigo_finca}_{anio}.xlsx"
 
     return send_file(
         archivo_excel,
