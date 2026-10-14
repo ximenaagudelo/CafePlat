@@ -21,7 +21,7 @@ def obtener_finca_activa():
     """
     Obtiene la finca asociada al usuario autenticado.
 
-    CampoSuite es multi-finca. Por eso toda consulta del módulo de café
+    CaféPlat es multi-finca. Por eso toda consulta del módulo de café
     debe estar filtrada por la finca activa del usuario actual.
     """
     if not current_user.is_authenticated or not current_user.finca:

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}CampoSuite{% endblock %}</title>
+    <title>{% block title %}CaféPlat{% endblock %}</title>
 
-    <!-- Favicon / isotipo CampoSuite -->
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/camposuite-isotipo.png') }}">
+    <!-- Favicon / isotipo CaféPlat -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/CafePlat-isotipo.png') }}">
 
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -17,10 +17,77 @@
     <!-- CSS propio -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 
+
+    <!-- Menú plegable: estos estilos prevalecen sobre el layout anterior. -->
+    <style>
+        body.cs-navigation { --cs-menu-width: 280px; margin: 0; }
+        .cs-navigation .app-layout { display: block !important; min-height: 100vh; }
+        .cs-navigation .sidebar {
+            position: fixed !important; inset: 0 auto 0 0 !important;
+            width: var(--cs-menu-width) !important; max-width: 86vw;
+            height: 100vh !important; height: 100dvh !important;
+            display: flex; flex-direction: column; overflow-y: auto;
+            transform: translateX(-100%) !important; visibility: hidden !important;
+            transition: transform .22s ease, visibility .22s;
+            z-index: 1050 !important;
+        }
+        .cs-navigation.cs-menu-visible .sidebar {
+            transform: translateX(0) !important; visibility: visible !important;
+        }
+        .cs-navigation .main-content {
+            margin-left: 0 !important; width: 100% !important; min-width: 0;
+            transition: margin-left .22s ease, width .22s ease;
+        }
+        .cs-navigation .mobile-menu-button,
+        .cs-navigation .sidebar-close {
+            display: inline-flex !important; align-items: center; justify-content: center;
+            flex-shrink: 0; width: 42px; height: 42px;
+            border: 1px solid #dce5e0; border-radius: 12px;
+            background: #fff; color: #244d3c; cursor: pointer; font-size: 1.35rem;
+        }
+        .cs-navigation .mobile-menu-button:hover { background: #edf5f0; }
+        .cs-navigation .mobile-menu-button:focus-visible,
+        .cs-navigation .sidebar-close:focus-visible { outline: 3px solid #58a47f; outline-offset: 3px; }
+        .cs-navigation .sidebar-brand { flex-shrink: 0; }
+        .cs-navigation .brand-text { flex: 1; min-width: 0; }
+        .cs-navigation .sidebar-menu { flex: 1; }
+        .cs-navigation .sidebar-footer { position: static; flex-shrink: 0; }
+        .cs-navigation .sidebar-overlay {
+            display: none !important; position: fixed; inset: 0;
+            background: rgba(16, 35, 27, .38); z-index: 1040 !important;
+        }
+        .cs-navigation .topbar { flex-wrap: wrap; gap: 12px; }
+        .cs-navigation .topbar-title-group { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .cs-navigation .topbar-title-text { min-width: 0; }
+        .cs-navigation .topbar-title-text h4 { overflow-wrap: anywhere; }
+        @media (min-width: 992px) {
+            .cs-navigation.cs-menu-visible .main-content {
+                margin-left: var(--cs-menu-width) !important;
+                width: calc(100% - var(--cs-menu-width)) !important;
+            }
+        }
+        @media (max-width: 991.98px) {
+            .cs-navigation.cs-menu-visible { overflow: hidden !important; }
+            .cs-navigation.cs-menu-visible .sidebar-overlay { display: block !important; }
+            .cs-navigation .topbar-actions:empty { display: none; }
+        }
+        @media (max-width: 575.98px) {
+            .cs-navigation .topbar { padding: 12px 16px; }
+            .cs-navigation .topbar-title-group { flex: 1; }
+            .cs-navigation .topbar-title-text h4 { font-size: 1.05rem; margin-bottom: 3px; }
+            .cs-navigation .topbar-title-text p { font-size: .75rem; margin: 0; }
+            .cs-navigation .topbar-user-text { display: none; }
+            .cs-navigation .topbar-actions:not(:empty) { order: 3; width: 100%; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .cs-navigation .sidebar, .cs-navigation .main-content { transition: none; }
+        }
+    </style>
+
     {% block extra_css %}{% endblock %}
 </head>
 
-<body>
+<body class="cs-navigation">
 
 {% set endpoint = request.endpoint or '' %}
 
@@ -29,18 +96,20 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
 
-        <!-- Marca CampoSuite -->
+        <!-- Marca CaféPlat -->
         <div class="sidebar-brand">
             <div class="brand-icon">
-                <img src="{{ url_for('static', filename='img/camposuite-isotipo.png') }}"
-                     alt="CampoSuite"
+                <img src="{{ url_for('static', filename='img/CafePlat-isotipo.png') }}"
+                     alt="CaféPlat"
                      class="brand-logo">
             </div>
 
             <div class="brand-text">
-                <h5>CampoSuite</h5>
+                <h5>CaféPlat</h5>
 
-                {% if current_user.is_authenticated and current_user.finca %}
+                {% if current_user.is_authenticated and current_user.is_admin %}
+                    <span>Administración</span>
+                {% elif current_user.is_authenticated and current_user.finca %}
                     <span>{{ current_user.finca.nombre }}</span>
                 {% else %}
                     <span>Gestión agropecuaria</span>
@@ -56,7 +125,7 @@
         </div>
 
         <!-- Finca activa -->
-        {% if current_user.is_authenticated and current_user.finca %}
+        {% if current_user.is_authenticated and not current_user.is_admin and current_user.finca %}
             <div class="sidebar-finca-card">
                 <div class="finca-logo-box">
                     {% if current_user.finca.logo %}
@@ -80,7 +149,16 @@
         {% endif %}
 
         <!-- Menú principal -->
-        <nav class="sidebar-menu">
+        <nav class="sidebar-menu" aria-label="Navegación principal">
+            {% if current_user.is_authenticated %}
+                {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin.index') }}"
+                       class="menu-link {% if endpoint.startswith('admin.') %}active{% endif %}">
+                        <i class="bi bi-shield-lock" aria-hidden="true"></i>
+                        <span>Administración</span>
+                    </a>
+                {% else %}
+
 
             <a href="{{ url_for('dashboard.index') }}"
                class="menu-link {% if endpoint.startswith('dashboard.') %}active{% endif %}">
@@ -130,6 +208,8 @@
                 <span>Reportes</span>
             </a>
 
+                {% endif %}
+            {% endif %}
         </nav>
 
         <!-- Pie del sidebar -->
@@ -139,7 +219,9 @@
                     <i class="bi bi-person-circle"></i>
                     <div>
                         <strong>{{ current_user.nombre }}</strong>
-                        {% if current_user.finca %}
+                        {% if current_user.is_admin %}
+                            <span>Administrador general</span>
+                        {% elif current_user.finca %}
                             <span>{{ current_user.finca.nombre }}</span>
                         {% else %}
                             <span>Sin finca asociada</span>
@@ -178,7 +260,9 @@
                 <div class="topbar-title-text">
                     <h4>{% block page_title %}Panel Principal{% endblock %}</h4>
 
-                    {% if current_user.is_authenticated and current_user.finca %}
+                    {% if current_user.is_authenticated and current_user.is_admin %}
+                        <p>Administrador general · CaféPlat</p>
+                    {% elif current_user.is_authenticated and current_user.finca %}
                         <p>{{ current_user.finca.nombre }} · Administración agropecuaria</p>
                     {% else %}
                         <p>Administración integral agropecuaria</p>
@@ -191,7 +275,7 @@
             </div>
 
             <div class="topbar-user">
-                {% if current_user.is_authenticated and current_user.finca %}
+                {% if current_user.is_authenticated and not current_user.is_admin and current_user.finca %}
                     <div class="user-finca-logo">
                         {% if current_user.finca.logo %}
                             <img src="{{ url_for('static', filename=current_user.finca.logo) }}"
@@ -210,13 +294,15 @@
                     {% if current_user.is_authenticated %}
                         <strong>{{ current_user.nombre }}</strong>
 
-                        {% if current_user.finca %}
+                        {% if current_user.is_admin %}
+                            <span>Administrador general</span>
+                        {% elif current_user.finca %}
                             <span>{{ current_user.finca.nombre }}</span>
                         {% else %}
                             <span>Sin finca asociada</span>
                         {% endif %}
                     {% else %}
-                        <strong>CampoSuite</strong>
+                        <strong>CaféPlat</strong>
                         <span>Sin sesión</span>
                     {% endif %}
                 </div>
@@ -258,6 +344,75 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+
+<script>
+(() => {
+    const body = document.body;
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    const close = document.getElementById('sidebarClose');
+    const overlay = document.getElementById('sidebarOverlay');
+    const main = document.querySelector('.main-content');
+    const mobile = window.matchMedia('(max-width: 991.98px)');
+    let desktopVisible = false;
+    const storageKey = 'CaféPlat.menu.visible';
+    try { desktopVisible = localStorage.getItem(storageKey) === 'true'; } catch (_) {}
+
+    function setVisible(visible, remember = false, focus = false) {
+        body.classList.toggle('cs-menu-visible', visible);
+        sidebar.inert = !visible;
+        sidebar.setAttribute('aria-hidden', String(!visible));
+        main.inert = visible && mobile.matches;
+        toggle.setAttribute('aria-expanded', String(visible));
+        toggle.setAttribute('aria-label', visible ? 'Ocultar menú' : 'Mostrar menú');
+        toggle.title = visible ? 'Ocultar menú' : 'Mostrar menú';
+        if (remember && !mobile.matches) {
+            desktopVisible = visible;
+            try { localStorage.setItem(storageKey, String(visible)); } catch (_) {}
+        }
+        if (focus) {
+            if (visible && mobile.matches) close.focus();
+            else if (!visible) toggle.focus();
+        }
+    }
+    function isVisible() { return body.classList.contains('cs-menu-visible'); }
+    // Captura el evento para evitar el doble toggle del main.js anterior.
+    function controlledClick(element, action) {
+        element.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            action();
+        }, true);
+    }
+    controlledClick(toggle, () => setVisible(!isVisible(), true, true));
+    controlledClick(close, () => setVisible(false, true, true));
+    controlledClick(overlay, () => setVisible(false, false, true));
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && isVisible()) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            setVisible(false, true, true);
+        } else if (event.key === 'Tab' && mobile.matches && isVisible()) {
+            const items = [...sidebar.querySelectorAll('a[href], button:not([disabled])')]
+                .filter(item => item.getClientRects().length);
+            const first = items[0], last = items[items.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault(); last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault(); first.focus();
+            }
+        }
+    }, true);
+    sidebar.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (mobile.matches) setVisible(false);
+        });
+    });
+    mobile.addEventListener('change', () => setVisible(mobile.matches ? false : desktopVisible));
+    setVisible(mobile.matches ? false : desktopVisible);
+})();
+</script>
 
 {% block extra_js %}{% endblock %}
 
