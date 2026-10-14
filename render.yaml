@@ -1,0 +1,20 @@
+# CaféPlat en el plan gratuito de Render.
+# La base de datos no se crea aquí: pega la URL de Neon en DATABASE_URL.
+services:
+  - type: web
+    name: cafeplat
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: bash scripts/start.sh
+    healthCheckPath: /health
+    envVars:
+      - key: FLASK_APP
+        value: run.py
+      - key: FLASK_DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
