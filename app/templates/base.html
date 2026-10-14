@@ -153,9 +153,14 @@
             {% if current_user.is_authenticated %}
                 {% if current_user.is_admin %}
                     <a href="{{ url_for('admin.index') }}"
-                       class="menu-link {% if endpoint.startswith('admin.') %}active{% endif %}">
+                       class="menu-link {% if endpoint == 'admin.index' %}active{% endif %}">
                         <i class="bi bi-shield-lock" aria-hidden="true"></i>
                         <span>Administración</span>
+                    </a>
+                    <a href="{{ url_for('admin.usuarios') }}"
+                       class="menu-link {% if endpoint in ('admin.usuarios', 'admin.nuevo_usuario') %}active{% endif %}">
+                        <i class="bi bi-people" aria-hidden="true"></i>
+                        <span>Usuarios</span>
                     </a>
                 {% else %}
 

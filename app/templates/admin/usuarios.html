@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios - CaféPlat{% endblock %}
+{% block page_title %}Gestión de Usuarios{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('admin.nuevo_usuario') }}" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1 shadow-sm">
+    <i class="bi bi-person-plus" aria-hidden="true"></i>
+    <span>Nuevo Usuario</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="card-header bg-white border-0 py-3 d-flex flex-wrap gap-2 justify-content-between align-items-center">
+        <h5 class="card-title mb-0 fw-bold"><i class="bi bi-people me-2 text-primary" aria-hidden="true"></i>Usuarios de CaféPlat</h5>
+        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+            {{ usuarios|length }} {% if usuarios|length == 1 %}usuario{% else %}usuarios{% endif %}
+        </span>
+    </div>
+    <div class="card-body p-0">
+        {% if usuarios %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th scope="col">Nombre de usuario</th><th scope="col">Correo</th><th scope="col">Tipo</th><th scope="col">Finca</th></tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr>
+                        <td class="fw-semibold">{{ usuario.nombre }}</td>
+                        <td class="text-break">{{ usuario.email or 'Sin correo' }}</td>
+                        <td>
+                            {% if usuario.is_admin %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary">Administrador general</span>
+                            {% else %}
+                            <span class="badge bg-success bg-opacity-10 text-success">Usuario de finca</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if usuario.is_admin %}
+                                <span class="text-muted">Administración general</span>
+                            {% elif usuario.finca %}
+                                <strong>{{ usuario.finca.nombre }}</strong><br>
+                                <small class="text-muted">{{ usuario.finca.codigo }}</small>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Sin finca asignada</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-people fs-1 d-block mb-2" aria-hidden="true"></i>
+            <h6 class="fw-bold">No hay usuarios registrados</h6>
+            <a href="{{ url_for('admin.nuevo_usuario') }}" class="btn btn-primary btn-sm mt-2">Crear Usuario</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

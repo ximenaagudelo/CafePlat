@@ -1,4 +1,5 @@
 import functools
+import re
 
 import os
 
@@ -34,6 +35,10 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
 
+
+from sqlalchemy import func, or_
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
 
 from app.extensions import db
 
@@ -870,3 +875,129 @@ def editar_finca(id):
 
 
     return render_template("admin/finca_formulario.html", finca=finca_obj)
+
+
+# Gestión de usuarios operativos: acceso exclusivo del administrador general.
+@admin_bp.route("/usuarios")
+@login_required
+@admin_required
+def usuarios():
+    usuarios_list = (
+        Usuario.query.options(selectinload(Usuario.finca))
+        .order_by(Usuario.id)
+        .all()
+    )
+    return render_template("admin/usuarios.html", usuarios=usuarios_list)
+
+
+@admin_bp.route("/usuarios/nuevo", methods=["GET", "POST"])
+@login_required
+@admin_required
+def nuevo_usuario():
+    fincas_list = Finca.query.order_by(Finca.nombre, Finca.id).all()
+    datos = {"nombre": "", "email": "", "finca_id": ""}
+
+    if request.method == "GET":
+        finca_preseleccionada = request.args.get("finca_id", type=int)
+        if any(finca.id == finca_preseleccionada for finca in fincas_list):
+            datos["finca_id"] = str(finca_preseleccionada)
+        return render_template(
+            "admin/usuario_formulario.html", fincas=fincas_list,
+            datos=datos, errores=[]
+        )
+
+    datos = {
+        "nombre": request.form.get("nombre", "").strip(),
+        "email": request.form.get("email", "").strip().lower(),
+        "finca_id": request.form.get("finca_id", "").strip(),
+    }
+
+    def mostrar_error(errores, estado=400):
+        # Las contraseñas nunca se envían de vuelta a la plantilla.
+        return render_template(
+            "admin/usuario_formulario.html", fincas=fincas_list,
+            datos=datos, errores=errores
+        ), estado
+
+    if not validar_csrf():
+        return mostrar_error([
+            "El formulario venció o su token no es válido. Recárgalo antes de guardar."
+        ])
+
+    errores = []
+    nombre = datos["nombre"]
+    email = datos["email"]
+    password = request.form.get("password", "")
+    confirmar = request.form.get("confirmar_password", "")
+
+    if not nombre:
+        errores.append("El nombre de usuario es obligatorio.")
+    elif len(nombre) > 80:
+        errores.append("El nombre de usuario no puede exceder 80 caracteres.")
+    elif any(ord(c) < 32 or ord(c) == 127 for c in nombre):
+        errores.append("El nombre de usuario contiene caracteres no permitidos.")
+
+    if not email:
+        errores.append("El correo electrónico es obligatorio.")
+    elif len(email) > 150:
+        errores.append("El correo electrónico no puede exceder 150 caracteres.")
+    elif not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+        errores.append("Ingresa un correo electrónico válido.")
+
+    if not password or not password.strip():
+        errores.append("La contraseña es obligatoria.")
+    elif not 8 <= len(password) <= 128:
+        errores.append("La contraseña debe tener entre 8 y 128 caracteres.")
+    if password != confirmar:
+        errores.append("La confirmación de la contraseña no coincide.")
+
+    try:
+        finca_id = int(datos["finca_id"])
+    except (ValueError, TypeError):
+        finca_id = None
+    finca_seleccionada = next(
+        (finca for finca in fincas_list if finca.id == finca_id), None
+    )
+    if finca_seleccionada is None:
+        errores.append("Selecciona una finca existente para este usuario.")
+
+    if errores:
+        return mostrar_error(errores)
+
+    # El login admite nombre O correo. Evitar ambigüedad entre ambas columnas.
+    identidades = [nombre.lower(), email.lower()]
+    duplicado = Usuario.query.filter(
+        or_(
+            func.lower(Usuario.nombre).in_(identidades),
+            func.lower(Usuario.email).in_(identidades),
+        )
+    ).first()
+    if duplicado:
+        return mostrar_error([
+            "El nombre o el correo ya está utilizado por otra cuenta."
+        ], 409)
+
+    try:
+        nuevo = Usuario(
+            nombre=nombre,
+            email=email,
+            finca_id=finca_seleccionada.id,
+            is_admin=False,
+        )
+        # Conserva exactamente la contraseña escrita; nunca se guarda texto plano.
+        nuevo.set_password(password)
+        db.session.add(nuevo)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return mostrar_error([
+            "No se pudo crear la cuenta. Comprueba que nombre y correo estén disponibles y que la finca exista."
+        ], 409)
+    except Exception:
+        db.session.rollback()
+        return mostrar_error([
+            "No se pudo guardar el usuario. Intenta nuevamente."
+        ], 500)
+
+    flash(f"Usuario '{nombre}' creado y asociado a '{finca_seleccionada.nombre}'.", "success")
+    return redirect(url_for("admin.usuarios"))

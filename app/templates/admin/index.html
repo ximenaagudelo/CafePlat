@@ -4,10 +4,17 @@
 {% block page_title %}Panel de Administración{% endblock %}
 
 {% block page_actions %}
+<div class="d-flex flex-wrap gap-2">
+
 <a href="{{ url_for('admin.nueva_finca') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1 shadow-sm">
     <i class="bi bi-plus-lg"></i>
     <span>Nueva Finca</span>
 </a>
+
+    <a href="{{ url_for('admin.nuevo_usuario') }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
+        <i class="bi bi-person-plus" aria-hidden="true"></i><span>Nuevo Usuario</span>
+    </a>
+</div>
 {% endblock %}
 
 {% block content %}
@@ -101,8 +108,11 @@
             </div>
             <div class="card-body">
                 <p class="text-muted small mb-3">
-                    Desde este panel podrás gestionar la configuración global de CaféPlat, incluyendo la creación y supervisión de fincas y usuarios administradores u operadores.
+                    Desde este panel podrás gestionar la configuración global de CaféPlat, incluyendo la gestión de fincas y la creación de sus usuarios operativos.
                 </p>
+                <a href="{{ url_for('admin.usuarios') }}" class="btn btn-outline-primary btn-sm mb-3">
+                    <i class="bi bi-people me-1" aria-hidden="true"></i>Gestionar Usuarios
+                </a>
                 <div class="alert alert-info py-2 px-3 small mb-0">
                     <i class="bi bi-shield-check me-1"></i> Sesión activa como <strong>Administrador General</strong>.
                 </div>

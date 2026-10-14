@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Usuario - CaféPlat{% endblock %}
+{% block page_title %}Crear Usuario{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('admin.usuarios') }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1">
+    <i class="bi bi-arrow-left" aria-hidden="true"></i><span>Volver a Usuarios</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-7">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-person-plus me-2 text-primary" aria-hidden="true"></i>Nuevo Usuario de Finca</h5>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted small">Selecciona la finca que podrá gestionar esta cuenta. El usuario entrará desde el login habitual de CaféPlat.</p>
+
+                {% if errores %}
+                <div class="alert alert-danger" role="alert">
+                    <strong>Revisa los siguientes datos:</strong>
+                    <ul class="mb-0 mt-2">{% for error in errores %}<li>{{ error }}</li>{% endfor %}</ul>
+                </div>
+                {% endif %}
+
+                {% if not fincas %}
+                <div class="alert alert-warning" role="alert">
+                    Primero debes crear una finca para asociar el usuario.
+                </div>
+                <a href="{{ url_for('admin.nueva_finca') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Crear primera finca</a>
+                {% else %}
+                <form method="POST" action="{{ url_for('admin.nuevo_usuario') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label for="nombre" class="form-label fw-semibold">Nombre de usuario <span class="text-danger">*</span></label>
+                            <input id="nombre" name="nombre" type="text" class="form-control" maxlength="80" required autocomplete="off" value="{{ datos.nombre }}" aria-describedby="nombre-ayuda">
+                            <div id="nombre-ayuda" class="form-text">Debe ser único. También sirve para iniciar sesión.</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="email" class="form-label fw-semibold">Correo electrónico <span class="text-danger">*</span></label>
+                            <input id="email" name="email" type="email" class="form-control" maxlength="150" required autocomplete="off" value="{{ datos.email }}">
+                        </div>
+                        <div class="col-12">
+                            <label for="finca_id" class="form-label fw-semibold">Finca asignada <span class="text-danger">*</span></label>
+                            <select id="finca_id" name="finca_id" class="form-select" required aria-describedby="finca-ayuda">
+                                <option value="">Selecciona una finca</option>
+                                {% for finca in fincas %}
+                                <option value="{{ finca.id }}" {% if datos.finca_id == finca.id|string %}selected{% endif %}>{{ finca.nombre }} — {{ finca.codigo }}</option>
+                                {% endfor %}
+                            </select>
+                            <div id="finca-ayuda" class="form-text">La cuenta tendrá acceso operativo a la finca seleccionada.</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="password" class="form-label fw-semibold">Contraseña <span class="text-danger">*</span></label>
+                            <input id="password" name="password" type="password" class="form-control" minlength="8" maxlength="128" required autocomplete="new-password" aria-describedby="password-ayuda">
+                            <div id="password-ayuda" class="form-text">Entre 8 y 128 caracteres.</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="confirmar_password" class="form-label fw-semibold">Confirmar contraseña <span class="text-danger">*</span></label>
+                            <input id="confirmar_password" name="confirmar_password" type="password" class="form-control" minlength="8" maxlength="128" required autocomplete="new-password">
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap justify-content-end gap-2 pt-3 mt-4 border-top">
+                        <a href="{{ url_for('admin.usuarios') }}" class="btn btn-outline-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1"><i class="bi bi-check-lg" aria-hidden="true"></i><span>Crear Usuario</span></button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
