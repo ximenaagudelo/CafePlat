@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from flask import Flask
@@ -10,6 +11,21 @@ def create_app():
     app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_object(Config)
+
+    if os.getenv("RENDER"):
+        from werkzeug.middleware.proxy_fix import ProxyFix
+
+        app.wsgi_app = ProxyFix(
+            app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+        )
+        app.config["SESSION_COOKIE_SECURE"] = True
+        app.config["SESSION_COOKIE_HTTPONLY"] = True
+        app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+        app.config["PREFERRED_URL_SCHEME"] = "https"
+
+    @app.get("/health")
+    def health():
+        return {"status": "ok"}, 200
 
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
 
