@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-flask --app run.py db upgrade
-
+# Las migraciones corren en el build (render.yaml), no en cada arranque.
 exec gunicorn \
   --bind "0.0.0.0:${PORT:-10000}" \
   --workers 1 \
