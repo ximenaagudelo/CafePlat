@@ -6,6 +6,7 @@ from flask_login import current_user, login_required
 
 from app.extensions import db
 from app.models import Venta
+from app.services.cafe import KG_ARROBA_PERGAMINO
 
 
 ventas_bp = Blueprint(
@@ -158,7 +159,7 @@ def index():
         if venta.producto == "cafe"
     )
 
-    arrobas_cafe = kilos_cafe / Decimal("12") if kilos_cafe else Decimal("0")
+    arrobas_cafe = kilos_cafe / KG_ARROBA_PERGAMINO if kilos_cafe else Decimal("0")
 
     kilos_platano = sum(
         venta.kilos or Decimal("0")

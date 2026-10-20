@@ -1,157 +1,188 @@
 document.addEventListener("DOMContentLoaded", function () {
-    inicializarSidebarMovil();
-    activarMenuActual();
-    animarContenido();
+    inicializarHojas();
+    inicializarAsistente();
     animarTarjetas();
 });
 
-function inicializarSidebarMovil() {
-    const sidebar = document.getElementById("sidebar");
-    const botonAbrir = document.getElementById("sidebarToggle");
-    const botonCerrar = document.getElementById("sidebarClose");
-    const overlay = document.getElementById("sidebarOverlay");
-    const enlacesMenu = document.querySelectorAll(".menu-link");
+/* =========================
+   Hoja inferior "Más"
+   ========================= */
+function inicializarHojas() {
+    const overlay = document.querySelector(".hoja-overlay");
+    let hojaAbierta = null;
+    let botonOrigen = null;
 
-    if (!sidebar || !botonAbrir || !overlay) {
-        return;
+    function abrir(hoja, boton) {
+        hojaAbierta = hoja;
+        botonOrigen = boton;
+        hoja.hidden = false;
+        overlay.hidden = false;
+        boton.setAttribute("aria-expanded", "true");
+        requestAnimationFrame(function () {
+            hoja.classList.add("abierta");
+            overlay.classList.add("visible");
+        });
+        const primero = hoja.querySelector("a, button");
+        if (primero) primero.focus();
     }
 
-    function abrirSidebar() {
-        sidebar.classList.add("is-open");
-        overlay.classList.add("is-visible");
-        document.body.classList.add("sidebar-open");
-        botonAbrir.setAttribute("aria-expanded", "true");
+    function cerrar() {
+        if (!hojaAbierta) return;
+        const hoja = hojaAbierta;
+        hoja.classList.remove("abierta");
+        overlay.classList.remove("visible");
+        botonOrigen.setAttribute("aria-expanded", "false");
+        botonOrigen.focus();
+        setTimeout(function () {
+            hoja.hidden = true;
+            overlay.hidden = true;
+        }, 200);
+        hojaAbierta = null;
     }
 
-    function cerrarSidebar() {
-        sidebar.classList.remove("is-open");
-        overlay.classList.remove("is-visible");
-        document.body.classList.remove("sidebar-open");
-        botonAbrir.setAttribute("aria-expanded", "false");
-    }
-
-    botonAbrir.addEventListener("click", function () {
-        if (sidebar.classList.contains("is-open")) {
-            cerrarSidebar();
-        } else {
-            abrirSidebar();
-        }
+    document.querySelectorAll("[data-abrir-hoja]").forEach(function (boton) {
+        boton.setAttribute("aria-expanded", "false");
+        boton.addEventListener("click", function () {
+            const hoja = document.getElementById(boton.dataset.abrirHoja);
+            if (!hoja) return;
+            hojaAbierta === hoja ? cerrar() : abrir(hoja, boton);
+        });
     });
 
-    if (botonCerrar) {
-        botonCerrar.addEventListener("click", cerrarSidebar);
-    }
-
-    overlay.addEventListener("click", cerrarSidebar);
+    if (overlay) overlay.addEventListener("click", cerrar);
 
     document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape" && sidebar.classList.contains("is-open")) {
-            cerrarSidebar();
-        }
-    });
-
-    enlacesMenu.forEach(function (enlace) {
-        enlace.addEventListener("click", function () {
-            if (window.innerWidth <= 992) {
-                cerrarSidebar();
-            }
-        });
-    });
-
-    window.addEventListener("resize", function () {
-        if (window.innerWidth > 992) {
-            cerrarSidebar();
-        }
+        if (event.key === "Escape") cerrar();
     });
 }
 
-function activarMenuActual() {
-    const enlaces = document.querySelectorAll(".menu-link");
-    const rutaActual = normalizarRuta(window.location.pathname);
+/* =========================
+   CafePlatIA
+   ========================= */
+function inicializarAsistente() {
+    const panel = document.getElementById("iaPanel");
+    const abrir = document.getElementById("iaAbrir");
+    if (!panel || !abrir) return;
 
-    enlaces.forEach(function (enlace) {
-        enlace.classList.remove("active");
+    const cerrar = document.getElementById("iaCerrar");
+    const form = document.getElementById("iaForm");
+    const input = document.getElementById("iaTexto");
+    const lista = document.getElementById("iaMensajes");
+    const sugerencias = document.getElementById("iaSugerencias");
+    const clave = "cafeplatia." + panel.dataset.finca;
 
-        const href = enlace.getAttribute("href");
+    let historial = [];
+    let enviando = false;
 
-        if (!href || href === "#") {
-            return;
+    try {
+        historial = JSON.parse(sessionStorage.getItem(clave) || "[]");
+    } catch (_) {
+        historial = [];
+    }
+
+    historial.forEach(function (mensaje) {
+        pintar(mensaje.role, mensaje.content);
+    });
+    if (historial.length) sugerencias.hidden = true;
+
+    function guardar() {
+        try {
+            sessionStorage.setItem(clave, JSON.stringify(historial.slice(-12)));
+        } catch (_) {}
+    }
+
+    function pintar(rol, texto) {
+        const burbuja = document.createElement("div");
+        burbuja.className = "ia-msg " + rol;
+        burbuja.textContent = texto;
+        lista.appendChild(burbuja);
+        lista.scrollTop = lista.scrollHeight;
+        return burbuja;
+    }
+
+    function mostrar(visible) {
+        panel.hidden = !visible;
+        abrir.setAttribute("aria-expanded", String(visible));
+        document.body.classList.toggle("ia-abierta", visible);
+        if (visible) {
+            lista.scrollTop = lista.scrollHeight;
+            input.focus();
+        } else {
+            abrir.focus();
         }
+    }
 
-        let rutaEnlace = "";
+    abrir.addEventListener("click", function () {
+        mostrar(panel.hidden);
+    });
+    cerrar.addEventListener("click", function () {
+        mostrar(false);
+    });
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !panel.hidden) mostrar(false);
+    });
+
+    async function enviar(texto) {
+        texto = texto.trim();
+        if (!texto || enviando) return;
+
+        enviando = true;
+        sugerencias.hidden = true;
+        input.value = "";
+
+        historial.push({ role: "user", content: texto });
+        pintar("user", texto);
+        const pensando = pintar("assistant pensando", "Pensando…");
 
         try {
-            rutaEnlace = normalizarRuta(new URL(href, window.location.origin).pathname);
-        } catch (error) {
-            rutaEnlace = normalizarRuta(href);
-        }
+            const respuesta = await fetch(panel.dataset.url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mensajes: historial })
+            });
+            const datos = await respuesta.json();
+            const contenido = datos.respuesta || datos.error || "No pude responder.";
 
-        if (rutaEnlace === "/") {
-            if (rutaActual === "/") {
-                enlace.classList.add("active");
+            pensando.remove();
+            pintar("assistant", contenido);
+
+            if (datos.respuesta) {
+                historial.push({ role: "assistant", content: contenido });
+            } else {
+                historial.pop();
             }
-
-            return;
+        } catch (_) {
+            pensando.remove();
+            pintar("assistant", "No hay conexión. Revisa el internet e intenta de nuevo.");
+            historial.pop();
         }
 
-        if (rutaActual === rutaEnlace || rutaActual.startsWith(rutaEnlace + "/")) {
-            enlace.classList.add("active");
-        }
+        guardar();
+        enviando = false;
+        input.focus();
+    }
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        enviar(input.value);
+    });
+
+    sugerencias.querySelectorAll("button").forEach(function (boton) {
+        boton.addEventListener("click", function () {
+            enviar(boton.textContent);
+        });
     });
 }
 
-function normalizarRuta(ruta) {
-    if (!ruta) {
-        return "/";
-    }
-
-    if (ruta.length > 1 && ruta.endsWith("/")) {
-        return ruta.slice(0, -1);
-    }
-
-    return ruta;
-}
-
-function animarContenido() {
-    const contenido = document.querySelector(".content-wrapper");
-
-    if (contenido) {
-        contenido.classList.add("animate-in");
-    }
-}
-
+/* =========================
+   Aparición suave de tarjetas
+   (animación CSS: si el JS falla, todo sigue visible)
+   ========================= */
 function animarTarjetas() {
-    const elementos = document.querySelectorAll(".card, .stat-card, .panel-card, .mobile-record-card");
-
-    if (!elementos.length) {
-        return;
-    }
-
-    elementos.forEach(function (elemento, index) {
+    document.querySelectorAll(
+        ".stat-card, .panel-card, .dashboard-kpi-card, .alerta-card, .hero-finca, .balance-card"
+    ).forEach(function (elemento, index) {
+        elemento.style.animationDelay = Math.min(index * 45, 360) + "ms";
         elemento.classList.add("reveal");
-        elemento.style.transitionDelay = `${index * 45}ms`;
-    });
-
-    if (!("IntersectionObserver" in window)) {
-        elementos.forEach(function (elemento) {
-            elemento.classList.add("visible");
-        });
-
-        return;
-    }
-
-    const observer = new IntersectionObserver(function (entradas) {
-        entradas.forEach(function (entrada) {
-            if (entrada.isIntersecting) {
-                entrada.target.classList.add("visible");
-                observer.unobserve(entrada.target);
-            }
-        });
-    }, {
-        threshold: 0.12
-    });
-
-    elementos.forEach(function (elemento) {
-        observer.observe(elemento);
     });
 }

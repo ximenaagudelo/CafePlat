@@ -109,7 +109,7 @@
                       placeholder="Notas adicionales del gasto o insumo...">{% if gasto and gasto.observaciones %}{{ gasto.observaciones }}{% endif %}</textarea>
         </div>
 
-        <div class="col-12 d-flex flex-column flex-md-row gap-2 justify-content-end mt-4">
+        <div class="form-actions col-12 d-flex flex-column flex-md-row gap-2 justify-content-end mt-4">
             <a href="{{ url_for('gastos.index') }}" class="btn btn-outline-secondary">
                 Cancelar
             </a>

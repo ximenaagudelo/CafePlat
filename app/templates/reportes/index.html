@@ -95,9 +95,9 @@ $ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
         <div class="col-12 col-md-3">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <small class="text-muted">Café producido</small>
-                    <h3 class="mb-0">{{ numero(resumen.total_cafe_kg) }} kg</h3>
-                    <small>{{ numero(resumen.total_cafe_arrobas) }} arrobas</small>
+                    <small class="text-muted">☕ Café en pergamino seco</small>
+                    <h3 class="mb-0">{{ numero(resumen.total_cafe_arrobas) }} @</h3>
+                    <small>{{ numero(resumen.total_cafe_pergamino_kg) }} kg equivalentes</small>
                 </div>
             </div>
         </div>

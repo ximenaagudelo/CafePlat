@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from app.extensions import db
+from app.services.cafe import KG_ARROBA_PERGAMINO
 
 
 class Venta(db.Model):
@@ -82,7 +83,7 @@ class Venta(db.Model):
         if not self.kilos:
             return Decimal("0")
 
-        return self.kilos / Decimal("12")
+        return self.kilos / KG_ARROBA_PERGAMINO
 
     @property
     def valor_calculado(self):

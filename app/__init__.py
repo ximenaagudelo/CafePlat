@@ -74,6 +74,22 @@ def create_app():
     from app.routes.admin import admin_bp
     app.register_blueprint(admin_bp)
 
+    from app.routes.asistente import asistente_bp
+    app.register_blueprint(asistente_bp)
 
+    @app.context_processor
+    def alerta_cortada():
+        """Próxima cortada de plátano, visible en la barra superior."""
+        from flask_login import current_user
+        from app.services.alertas import proxima_cortada
+
+        if (
+            not current_user.is_authenticated
+            or current_user.is_admin
+            or not current_user.finca
+        ):
+            return {"alerta_cortada": None}
+
+        return {"alerta_cortada": proxima_cortada(current_user.finca.id)}
 
     return app

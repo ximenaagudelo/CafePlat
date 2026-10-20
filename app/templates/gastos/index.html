@@ -1,257 +1,152 @@
 {% extends "base.html" %}
 
-{% block title %}Gastos e Insumos · CaféPlat{% endblock %}
+{% block title %}Gastos e insumos · CaféPlat{% endblock %}
+{% block page_title %}Gastos{% endblock %}
 
-{% block page_title %}Gastos e Insumos{% endblock %}
+{% macro pesos(valor) -%}
+    $ {{ "{:,.0f}".format(valor|default(0, true)|float).replace(",", ".") }}
+{%- endmacro %}
 
 {% block content %}
 
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-    <div>
-        <h5 class="mb-1">Control de gastos e insumos</h5>
-        <p class="text-muted mb-0">
-            Registra y consulta los costos operativos de la finca activa.
-        </p>
-    </div>
+{% set hay_filtros = filtros.categoria or filtros.tipo or filtros.fecha_inicio or filtros.fecha_fin %}
 
-    <a href="{{ url_for('gastos.nuevo') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-1"></i>
-        Nuevo registro
-    </a>
+<div class="page-intro">
+    <div>
+        <h2>🧾 Gastos e insumos</h2>
+        <p>Abonos, herramientas, transporte y demás costos de la finca.</p>
+    </div>
+    <div class="acciones d-none d-md-flex">
+        <a href="{{ url_for('gastos.nuevo') }}" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Nuevo gasto
+        </a>
+    </div>
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="stat-card">
-            <div>
-                <span>Total registros</span>
-                <h3>{{ total_registros }}</h3>
-            </div>
-            <i class="bi bi-receipt"></i>
+    <div class="col-12 col-xl-4">
+        <div class="stat-card cafe">
+            <span class="emoji" aria-hidden="true">🧾</span>
+            <h6>Total gastado</h6>
+            <h3>{{ pesos(total_general) }}</h3>
+            <small>{{ total_registros }} registros{% if hay_filtros %} con filtros{% endif %}</small>
         </div>
     </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="stat-card">
-            <div>
-                <span>Total general</span>
-                <h3>${{ "{:,.0f}".format(total_general) }}</h3>
-            </div>
-            <i class="bi bi-cash-stack"></i>
+    <div class="col-6 col-xl-4">
+        <div class="stat-card verde">
+            <span class="emoji" aria-hidden="true">🌱</span>
+            <h6>Insumos agrícolas</h6>
+            <h3>{{ pesos(total_insumos) }}</h3>
+            <small>Abonos y fumigación</small>
         </div>
     </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="stat-card">
-            <div>
-                <span>Insumos agrícolas</span>
-                <h3>${{ "{:,.0f}".format(total_insumos) }}</h3>
-            </div>
-            <i class="bi bi-flower1"></i>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="stat-card">
-            <div>
-                <span>Mano de obra</span>
-                <h3>${{ "{:,.0f}".format(total_mano_obra) }}</h3>
-            </div>
-            <i class="bi bi-people"></i>
+    <div class="col-6 col-xl-4">
+        <div class="stat-card pergamino">
+            <span class="emoji" aria-hidden="true">👷</span>
+            <h6>Mano de obra</h6>
+            <h3>{{ pesos(total_mano_obra) }}</h3>
+            <small>Registrada como gasto</small>
         </div>
     </div>
 </div>
 
-<div class="panel-card mb-4">
+<details class="filtros" {% if hay_filtros %}open{% endif %}>
+    <summary>
+        <i class="bi bi-funnel"></i> Filtrar
+        {% if hay_filtros %}<span class="activo">· filtros aplicados</span>{% endif %}
+    </summary>
     <form method="get" class="row g-3 align-items-end">
         <div class="col-12 col-md-6 col-xl-3">
-            <label class="form-label">Categoría</label>
-            <select name="categoria" class="form-select">
+            <label class="form-label" for="f_categoria">Categoría</label>
+            <select name="categoria" id="f_categoria" class="form-select">
                 <option value="">Todas</option>
                 {% for categoria in categorias %}
-                    <option value="{{ categoria }}"
-                            {% if filtros.categoria == categoria %}selected{% endif %}>
-                        {{ categoria }}
-                    </option>
+                    <option value="{{ categoria }}" {% if filtros.categoria == categoria %}selected{% endif %}>{{ categoria }}</option>
                 {% endfor %}
             </select>
         </div>
 
         <div class="col-12 col-md-6 col-xl-3">
-            <label class="form-label">Tipo</label>
-            <select name="tipo" class="form-select">
+            <label class="form-label" for="f_tipo">Tipo</label>
+            <select name="tipo" id="f_tipo" class="form-select">
                 <option value="">Todos</option>
                 {% for tipo in tipos %}
-                    <option value="{{ tipo }}"
-                            {% if filtros.tipo == tipo %}selected{% endif %}>
-                        {{ tipo }}
-                    </option>
+                    <option value="{{ tipo }}" {% if filtros.tipo == tipo %}selected{% endif %}>{{ tipo }}</option>
                 {% endfor %}
             </select>
         </div>
 
-        <div class="col-12 col-md-6 col-xl-2">
-            <label class="form-label">Fecha inicial</label>
-            <input type="date"
-                   name="fecha_inicio"
-                   class="form-control"
-                   value="{{ filtros.fecha_inicio }}">
+        <div class="col-6 col-xl-2">
+            <label class="form-label" for="f_inicio">Desde</label>
+            <input type="date" id="f_inicio" name="fecha_inicio" class="form-control" value="{{ filtros.fecha_inicio }}">
         </div>
 
-        <div class="col-12 col-md-6 col-xl-2">
-            <label class="form-label">Fecha final</label>
-            <input type="date"
-                   name="fecha_fin"
-                   class="form-control"
-                   value="{{ filtros.fecha_fin }}">
+        <div class="col-6 col-xl-2">
+            <label class="form-label" for="f_fin">Hasta</label>
+            <input type="date" id="f_fin" name="fecha_fin" class="form-control" value="{{ filtros.fecha_fin }}">
         </div>
 
         <div class="col-12 col-xl-2 d-flex gap-2">
-            <button type="submit" class="btn btn-dark w-100">
-                <i class="bi bi-funnel me-1"></i>
-                Filtrar
-            </button>
-
-            <a href="{{ url_for('gastos.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-x-circle"></i>
-            </a>
+            <button type="submit" class="btn btn-dark flex-fill">Filtrar</button>
+            <a href="{{ url_for('gastos.index') }}" class="btn btn-outline-secondary flex-fill">Limpiar</a>
         </div>
     </form>
-</div>
+</details>
 
-<div class="panel-card">
+<section class="panel-card">
+    <h3 class="section-title mb-3">Gastos registrados</h3>
+
     {% if gastos %}
-        <div class="table-responsive d-none d-lg-block">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Categoría</th>
-                        <th>Descripción</th>
-                        <th>Proveedor</th>
-                        <th>Tipo</th>
-                        <th>Método</th>
-                        <th class="text-end">Valor</th>
-                        <th class="text-end">Acciones</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {% for gasto in gastos %}
-                        <tr>
-                            <td>{{ gasto.fecha.strftime("%d/%m/%Y") }}</td>
-                            <td>
-                                <span class="badge text-bg-light">
-                                    {{ gasto.categoria }}
-                                </span>
-                            </td>
-                            <td>
-                                <strong>{{ gasto.descripcion }}</strong>
-
-                                {% if gasto.observaciones %}
-                                    <br>
-                                    <small class="text-muted">{{ gasto.observaciones }}</small>
-                                {% endif %}
-                            </td>
-                            <td>{{ gasto.proveedor or "—" }}</td>
-                            <td>{{ gasto.tipo }}</td>
-                            <td>{{ gasto.metodo_pago or "—" }}</td>
-                            <td class="text-end">
-                                <strong>${{ "{:,.0f}".format(gasto.valor) }}</strong>
-                            </td>
-                            <td class="text-end">
-                                <div class="table-actions justify-content-end">
-                                    <a href="{{ url_for('gastos.editar', gasto_id=gasto.id) }}"
-                                       class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-
-                                    <form method="post"
-                                          action="{{ url_for('gastos.eliminar', gasto_id=gasto.id) }}"
-                                          onsubmit="return confirm('¿Eliminar este gasto o insumo?');">
-                                        <button type="submit"
-                                                class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="mobile-card-list d-lg-none">
+        <div class="record-grid">
             {% for gasto in gastos %}
-                <div class="mobile-record-card">
-                    <div class="d-flex justify-content-between gap-3 mb-2">
+                <article class="mobile-record-card">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
                         <div>
-                            <strong>{{ gasto.descripcion }}</strong>
-                            <br>
-                            <small class="text-muted">
-                                {{ gasto.fecha.strftime("%d/%m/%Y") }} · {{ gasto.categoria }}
-                            </small>
+                            <div class="record-title">{{ gasto.descripcion }}</div>
+                            <div class="record-meta">{{ gasto.fecha.strftime("%d/%m/%Y") }} · {{ gasto.categoria }}</div>
                         </div>
-
-                        <strong>${{ "{:,.0f}".format(gasto.valor) }}</strong>
+                        <span class="badge bg-danger">{{ pesos(gasto.valor) }}</span>
                     </div>
 
-                    <div class="mb-2">
-                        <span class="badge text-bg-light">{{ gasto.tipo }}</span>
-
-                        {% if gasto.metodo_pago %}
-                            <span class="badge text-bg-light">{{ gasto.metodo_pago }}</span>
-                        {% endif %}
+                    <div class="d-flex flex-wrap gap-1 mt-2">
+                        <span class="badge bg-secondary">{{ gasto.tipo }}</span>
+                        {% if gasto.metodo_pago %}<span class="badge bg-secondary">{{ gasto.metodo_pago }}</span>{% endif %}
                     </div>
 
                     {% if gasto.proveedor %}
-                        <p class="mb-1">
-                            <small><strong>Proveedor:</strong> {{ gasto.proveedor }}</small>
-                        </p>
+                        <div class="mt-2 small"><span class="text-muted">Proveedor:</span> {{ gasto.proveedor }}</div>
                     {% endif %}
-
                     {% if gasto.observaciones %}
-                        <p class="text-muted mb-2">
-                            <small>{{ gasto.observaciones }}</small>
-                        </p>
+                        <div class="mt-1 small text-muted">{{ gasto.observaciones }}</div>
                     {% endif %}
 
-                    <div class="d-flex gap-2">
-                        <a href="{{ url_for('gastos.editar', gasto_id=gasto.id) }}"
-                           class="btn btn-sm btn-outline-primary w-100">
-                            <i class="bi bi-pencil me-1"></i>
-                            Editar
+                    <div class="record-actions">
+                        <a href="{{ url_for('gastos.editar', gasto_id=gasto.id) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil"></i> Editar
                         </a>
-
                         <form method="post"
                               action="{{ url_for('gastos.eliminar', gasto_id=gasto.id) }}"
-                              class="w-100"
                               onsubmit="return confirm('¿Eliminar este gasto o insumo?');">
-                            <button type="submit"
-                                    class="btn btn-sm btn-outline-danger w-100">
-                                <i class="bi bi-trash me-1"></i>
-                                Eliminar
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash3"></i> Eliminar
                             </button>
                         </form>
                     </div>
-                </div>
+                </article>
             {% endfor %}
         </div>
     {% else %}
-        <div class="text-center py-5">
-            <i class="bi bi-receipt-cutoff display-5 text-muted"></i>
-            <h5 class="mt-3">No hay gastos registrados</h5>
-            <p class="text-muted">
-                Cuando registres gastos o insumos, aparecerán en esta sección.
-            </p>
-
-            <a href="{{ url_for('gastos.nuevo') }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-1"></i>
-                Crear primer registro
-            </a>
+        <div class="empty-state">
+            <span class="emoji" aria-hidden="true">🧾</span>
+            {% if hay_filtros %}No hay gastos con esos filtros.{% else %}Todavía no hay gastos registrados.{% endif %}
         </div>
     {% endif %}
+</section>
+
+<div class="form-actions d-md-none">
+    <a href="{{ url_for('gastos.nuevo') }}" class="btn btn-success">
+        <i class="bi bi-plus-lg"></i> Nuevo gasto
+    </a>
 </div>
 
 {% endblock %}

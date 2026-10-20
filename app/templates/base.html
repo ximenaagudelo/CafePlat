@@ -1,423 +1,255 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0d1510">
     <title>{% block title %}CaféPlat{% endblock %}</title>
 
-    <!-- Favicon / isotipo CaféPlat -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/CafePlat-isotipo.png') }}">
 
-    <!-- Bootstrap 5 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-
-    <!-- CSS propio -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-
-
-    <!-- Menú plegable: estos estilos prevalecen sobre el layout anterior. -->
-    <style>
-        body.cs-navigation { --cs-menu-width: 280px; margin: 0; }
-        .cs-navigation .app-layout { display: block !important; min-height: 100vh; }
-        .cs-navigation .sidebar {
-            position: fixed !important; inset: 0 auto 0 0 !important;
-            width: var(--cs-menu-width) !important; max-width: 86vw;
-            height: 100vh !important; height: 100dvh !important;
-            display: flex; flex-direction: column; overflow-y: auto;
-            transform: translateX(-100%) !important; visibility: hidden !important;
-            transition: transform .22s ease, visibility .22s;
-            z-index: 1050 !important;
-        }
-        .cs-navigation.cs-menu-visible .sidebar {
-            transform: translateX(0) !important; visibility: visible !important;
-        }
-        .cs-navigation .main-content {
-            margin-left: 0 !important; width: 100% !important; min-width: 0;
-            transition: margin-left .22s ease, width .22s ease;
-        }
-        .cs-navigation .mobile-menu-button,
-        .cs-navigation .sidebar-close {
-            display: inline-flex !important; align-items: center; justify-content: center;
-            flex-shrink: 0; width: 42px; height: 42px;
-            border: 1px solid #dce5e0; border-radius: 12px;
-            background: #fff; color: #244d3c; cursor: pointer; font-size: 1.35rem;
-        }
-        .cs-navigation .mobile-menu-button:hover { background: #edf5f0; }
-        .cs-navigation .mobile-menu-button:focus-visible,
-        .cs-navigation .sidebar-close:focus-visible { outline: 3px solid #58a47f; outline-offset: 3px; }
-        .cs-navigation .sidebar-brand { flex-shrink: 0; }
-        .cs-navigation .brand-text { flex: 1; min-width: 0; }
-        .cs-navigation .sidebar-menu { flex: 1; }
-        .cs-navigation .sidebar-footer { position: static; flex-shrink: 0; }
-        .cs-navigation .sidebar-overlay {
-            display: none !important; position: fixed; inset: 0;
-            background: rgba(16, 35, 27, .38); z-index: 1040 !important;
-        }
-        .cs-navigation .topbar { flex-wrap: wrap; gap: 12px; }
-        .cs-navigation .topbar-title-group { display: flex; align-items: center; gap: 12px; min-width: 0; }
-        .cs-navigation .topbar-title-text { min-width: 0; }
-        .cs-navigation .topbar-title-text h4 { overflow-wrap: anywhere; }
-        @media (min-width: 992px) {
-            .cs-navigation.cs-menu-visible .main-content {
-                margin-left: var(--cs-menu-width) !important;
-                width: calc(100% - var(--cs-menu-width)) !important;
-            }
-        }
-        @media (max-width: 991.98px) {
-            .cs-navigation.cs-menu-visible { overflow: hidden !important; }
-            .cs-navigation.cs-menu-visible .sidebar-overlay { display: block !important; }
-            .cs-navigation .topbar-actions:empty { display: none; }
-        }
-        @media (max-width: 575.98px) {
-            .cs-navigation .topbar { padding: 12px 16px; }
-            .cs-navigation .topbar-title-group { flex: 1; }
-            .cs-navigation .topbar-title-text h4 { font-size: 1.05rem; margin-bottom: 3px; }
-            .cs-navigation .topbar-title-text p { font-size: .75rem; margin: 0; }
-            .cs-navigation .topbar-user-text { display: none; }
-            .cs-navigation .topbar-actions:not(:empty) { order: 3; width: 100%; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .cs-navigation .sidebar, .cs-navigation .main-content { transition: none; }
-        }
-    </style>
 
     {% block extra_css %}{% endblock %}
 </head>
 
-<body class="cs-navigation">
-
 {% set endpoint = request.endpoint or '' %}
+{% set es_finca = current_user.is_authenticated and not current_user.is_admin and current_user.finca %}
 
-<div class="app-layout">
+{# Navegación: (endpoint, prefijo activo, emoji, etiqueta). Se usa en el menú lateral y en la barra inferior. #}
+{% if current_user.is_authenticated and current_user.is_admin %}
+    {% set menu_principal = [
+        ('admin.index', 'admin.index', '🛡️', 'Panel'),
+        ('admin.fincas', 'admin.fincas', '🌳', 'Fincas'),
+        ('admin.usuarios', 'admin.usuarios', '👥', 'Usuarios'),
+    ] %}
+    {% set menu_extra = [] %}
+{% elif es_finca %}
+    {% set menu_principal = [
+        ('dashboard.index', 'dashboard.', '🏡', 'Inicio'),
+        ('produccion_cafe.index', 'produccion_cafe.', '☕', 'Café'),
+        ('produccion_platano.index', 'produccion_platano.', '🍌', 'Plátano'),
+        ('ventas.index', 'ventas.', '💰', 'Ventas'),
+    ] %}
+    {% set menu_extra = [
+        ('trabajadores.index', 'trabajadores.', '👷', 'Trabajadores'),
+        ('gastos.index', 'gastos.', '🧾', 'Gastos e insumos'),
+        ('inventario.index', 'inventario.', '📦', 'Inventario'),
+        ('reportes.index', 'reportes.', '📊', 'Reportes'),
+    ] %}
+{% else %}
+    {% set menu_principal = [] %}
+    {% set menu_extra = [] %}
+{% endif %}
 
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
+<body class="cp-app">
 
-        <!-- Marca CaféPlat -->
-        <div class="sidebar-brand">
-            <div class="brand-icon">
-                <img src="{{ url_for('static', filename='img/CafePlat-isotipo.png') }}"
-                     alt="CaféPlat"
-                     class="brand-logo">
+<div class="cp-fondo" aria-hidden="true"></div>
+
+<!-- Menú lateral (escritorio) -->
+<aside class="sidebar" aria-label="Menú principal">
+    <a href="{{ url_for('admin.index') if current_user.is_authenticated and current_user.is_admin else url_for('dashboard.index') }}"
+       class="sidebar-brand">
+        <span class="brand-mark">
+            <img src="{{ url_for('static', filename='img/CafePlat-isotipo.png') }}" alt="">
+        </span>
+        <span class="brand-text">
+            <strong>CaféPlat</strong>
+            <small>
+                {% if current_user.is_authenticated and current_user.is_admin %}Administración
+                {% elif es_finca %}{{ current_user.finca.nombre }}
+                {% else %}Café y plátano{% endif %}
+            </small>
+        </span>
+    </a>
+
+    <nav class="sidebar-menu">
+        {% for ruta, prefijo, emoji, etiqueta in menu_principal + menu_extra %}
+            <a href="{{ url_for(ruta) }}"
+               class="menu-link {% if endpoint.startswith(prefijo) %}active{% endif %}"
+               {% if endpoint.startswith(prefijo) %}aria-current="page"{% endif %}>
+                <span class="menu-emoji" aria-hidden="true">{{ emoji }}</span>
+                <span>{{ etiqueta }}</span>
+            </a>
+            {% if loop.index == menu_principal|length and menu_extra %}
+                <hr class="menu-divider">
+            {% endif %}
+        {% endfor %}
+    </nav>
+
+    {% if current_user.is_authenticated %}
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <span class="user-dot">{{ current_user.nombre[:1] }}</span>
+                <span>
+                    <strong>{{ current_user.nombre }}</strong>
+                    <small>{{ 'Administrador general' if current_user.is_admin else 'Usuario de finca' }}</small>
+                </span>
             </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm w-100">
+                <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+            </a>
+        </div>
+    {% endif %}
+</aside>
 
-            <div class="brand-text">
-                <h5>CaféPlat</h5>
+<main class="main-content">
 
-                {% if current_user.is_authenticated and current_user.is_admin %}
-                    <span>Administración</span>
-                {% elif current_user.is_authenticated and current_user.finca %}
-                    <span>{{ current_user.finca.nombre }}</span>
+    <header class="topbar">
+        <div class="topbar-title">
+            <span class="topbar-mark d-lg-none">
+                {% if es_finca and current_user.finca.logo %}
+                    <img src="{{ url_for('static', filename=current_user.finca.logo) }}" alt="">
                 {% else %}
-                    <span>Gestión agropecuaria</span>
+                    <img src="{{ url_for('static', filename='img/CafePlat-isotipo.png') }}" alt="">
                 {% endif %}
+            </span>
+            <div>
+                <span class="topbar-kicker">
+                    {% if es_finca %}{{ current_user.finca.nombre }}{% else %}CaféPlat{% endif %}
+                </span>
+                <h1>{% block page_title %}Inicio{% endblock %}</h1>
             </div>
-
-            <button type="button"
-                    class="sidebar-close"
-                    id="sidebarClose"
-                    aria-label="Cerrar menú">
-                <i class="bi bi-x-lg"></i>
-            </button>
         </div>
 
-        <!-- Finca activa -->
-        {% if current_user.is_authenticated and not current_user.is_admin and current_user.finca %}
-            <div class="sidebar-finca-card">
-                <div class="finca-logo-box">
-                    {% if current_user.finca.logo %}
-                        <img src="{{ url_for('static', filename=current_user.finca.logo) }}"
-                             alt="{{ current_user.finca.nombre }}"
-                             class="finca-logo">
-                    {% else %}
-                        <i class="bi bi-tree-fill"></i>
-                    {% endif %}
-                </div>
+        <div class="topbar-actions">
+            {% block page_actions %}{% endblock %}
+        </div>
 
-                <div class="finca-info">
-                    <span class="finca-label">Finca activa</span>
-                    <strong>{{ current_user.finca.nombre }}</strong>
-
-                    {% if current_user.finca.ubicacion %}
-                        <small>{{ current_user.finca.ubicacion }}</small>
-                    {% endif %}
-                </div>
-            </div>
-        {% endif %}
-
-        <!-- Menú principal -->
-        <nav class="sidebar-menu" aria-label="Navegación principal">
-            {% if current_user.is_authenticated %}
-                {% if current_user.is_admin %}
-                    <a href="{{ url_for('admin.index') }}"
-                       class="menu-link {% if endpoint == 'admin.index' %}active{% endif %}">
-                        <i class="bi bi-shield-lock" aria-hidden="true"></i>
-                        <span>Administración</span>
-                    </a>
-                    <a href="{{ url_for('admin.usuarios') }}"
-                       class="menu-link {% if endpoint in ('admin.usuarios', 'admin.nuevo_usuario') %}active{% endif %}">
-                        <i class="bi bi-people" aria-hidden="true"></i>
-                        <span>Usuarios</span>
-                    </a>
-                {% else %}
-
-
-            <a href="{{ url_for('dashboard.index') }}"
-               class="menu-link {% if endpoint.startswith('dashboard.') %}active{% endif %}">
-                <i class="bi bi-speedometer2"></i>
-                <span>Dashboard</span>
-            </a>
-
-            <a href="{{ url_for('produccion_cafe.index') }}"
-               class="menu-link {% if endpoint.startswith('produccion_cafe.') %}active{% endif %}">
-                <i class="bi bi-cup-hot-fill"></i>
-                <span>Producción Café</span>
-            </a>
-
+        {% if alerta_cortada %}
             <a href="{{ url_for('produccion_platano.index') }}"
-               class="menu-link {% if endpoint.startswith('produccion_platano.') %}active{% endif %}">
-                <i class="bi bi-basket-fill"></i>
-                <span>Plátano / Banano</span>
+               class="cortada-chip estado-{{ alerta_cortada.estado }}"
+               title="Próxima cortada de plátano">
+                <span aria-hidden="true">🍌</span>
+                <span class="cortada-chip-text">
+                    {% if alerta_cortada.dias <= 0 %}
+                        Cortada lista · {{ alerta_cortada.lote }}
+                    {% elif alerta_cortada.dias == 1 %}
+                        Cortada mañana · {{ alerta_cortada.lote }}
+                    {% else %}
+                        Cortada en {{ alerta_cortada.dias }} días · {{ alerta_cortada.lote }}
+                    {% endif %}
+                </span>
             </a>
-
-            <a href="{{ url_for('ventas.index') }}"
-               class="menu-link {% if endpoint.startswith('ventas.') %}active{% endif %}">
-                <i class="bi bi-cash-coin"></i>
-                <span>Ventas</span>
-            </a>
-
-            <a href="{{ url_for('trabajadores.index') }}"
-               class="menu-link {% if endpoint.startswith('trabajadores.') %}active{% endif %}">
-                <i class="bi bi-people-fill"></i>
-                <span>Trabajadores</span>
-            </a>
-
-            <a href="{{ url_for('gastos.index') }}"
-               class="menu-link {% if endpoint.startswith('gastos.') %}active{% endif %}">
-                <i class="bi bi-receipt-cutoff"></i>
-                <span>Gastos e Insumos</span>
-            </a>
-
-            <a href="{{ url_for('inventario.index') }}"
-               class="menu-link {% if endpoint.startswith('inventario.') %}active{% endif %}">
-                <i class="bi bi-box-seam"></i>
-                <span>Inventario</span>
-            </a>
-
-            <a href="{{ url_for('reportes.index') }}"
-               class="menu-link {% if endpoint.startswith('reportes.') %}active{% endif %}">
-                <i class="bi bi-graph-up-arrow"></i>
-                <span>Reportes</span>
-            </a>
-
-                {% endif %}
-            {% endif %}
-        </nav>
-
-        <!-- Pie del sidebar -->
-        {% if current_user.is_authenticated %}
-            <div class="sidebar-footer">
-                <div class="sidebar-user-mini">
-                    <i class="bi bi-person-circle"></i>
-                    <div>
-                        <strong>{{ current_user.nombre }}</strong>
-                        {% if current_user.is_admin %}
-                            <span>Administrador general</span>
-                        {% elif current_user.finca %}
-                            <span>{{ current_user.finca.nombre }}</span>
-                        {% else %}
-                            <span>Sin finca asociada</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <a href="{{ url_for('auth.logout') }}" class="sidebar-logout">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span>Cerrar sesión</span>
-                </a>
-            </div>
         {% endif %}
+    </header>
 
-    </aside>
-
-    <!-- Fondo oscuro para menú móvil -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <!-- Contenido principal -->
-    <main class="main-content">
-
-        <!-- Topbar -->
-        <header class="topbar">
-
-            <div class="topbar-title-group">
-                <button type="button"
-                        class="mobile-menu-button"
-                        id="sidebarToggle"
-                        aria-label="Abrir menú"
-                        aria-controls="sidebar"
-                        aria-expanded="false">
-                    <i class="bi bi-list"></i>
-                </button>
-
-                <div class="topbar-title-text">
-                    <h4>{% block page_title %}Panel Principal{% endblock %}</h4>
-
-                    {% if current_user.is_authenticated and current_user.is_admin %}
-                        <p>Administrador general · CaféPlat</p>
-                    {% elif current_user.is_authenticated and current_user.finca %}
-                        <p>{{ current_user.finca.nombre }} · Administración agropecuaria</p>
-                    {% else %}
-                        <p>Administración integral agropecuaria</p>
-                    {% endif %}
+    <section class="content-wrapper">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-wrapper">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                        </div>
+                    {% endfor %}
                 </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </section>
+
+</main>
+
+{% if menu_principal %}
+    <!-- Barra de botones inferior (celular) -->
+    <nav class="bottom-nav" aria-label="Navegación">
+        {% for ruta, prefijo, emoji, etiqueta in menu_principal %}
+            <a href="{{ url_for(ruta) }}"
+               class="bottom-nav-item {% if endpoint.startswith(prefijo) %}active{% endif %}"
+               {% if endpoint.startswith(prefijo) %}aria-current="page"{% endif %}>
+                <span class="bottom-nav-emoji" aria-hidden="true">{{ emoji }}</span>
+                <span>{{ etiqueta }}</span>
+            </a>
+        {% endfor %}
+
+        {% set ns = namespace(extra_activo=false) %}
+        {% for ruta, prefijo, emoji, etiqueta in menu_extra %}
+            {% if endpoint.startswith(prefijo) %}{% set ns.extra_activo = true %}{% endif %}
+        {% endfor %}
+        <button type="button"
+                class="bottom-nav-item {% if ns.extra_activo %}active{% endif %}"
+                data-abrir-hoja="hojaMas"
+                aria-haspopup="dialog">
+            <span class="bottom-nav-emoji" aria-hidden="true">☰</span>
+            <span>Más</span>
+        </button>
+    </nav>
+
+    <!-- Hoja inferior con el resto de secciones -->
+    <div class="hoja-overlay" data-cerrar-hoja hidden></div>
+    <div class="hoja" id="hojaMas" role="dialog" aria-modal="true" aria-label="Más secciones" hidden>
+        <div class="hoja-asa" aria-hidden="true"></div>
+        <div class="hoja-grid">
+            {% for ruta, prefijo, emoji, etiqueta in menu_extra %}
+                <a href="{{ url_for(ruta) }}" class="hoja-item {% if endpoint.startswith(prefijo) %}active{% endif %}">
+                    <span aria-hidden="true">{{ emoji }}</span>
+                    {{ etiqueta }}
+                </a>
+            {% endfor %}
+            <a href="{{ url_for('auth.logout') }}" class="hoja-item salir">
+                <span aria-hidden="true">🚪</span>
+                Cerrar sesión
+            </a>
+        </div>
+    </div>
+{% endif %}
+
+{% if es_finca %}
+    <!-- CafePlatIA -->
+    <button type="button" class="ia-fab" id="iaAbrir" aria-controls="iaPanel" aria-expanded="false">
+        <span aria-hidden="true">🌱</span>
+        <span class="ia-fab-text">CafePlatIA</span>
+    </button>
+
+    <section class="ia-panel" id="iaPanel" aria-label="CafePlatIA" hidden
+             data-url="{{ url_for('asistente.preguntar') }}"
+             data-finca="{{ current_user.finca.id }}">
+        <header class="ia-header">
+            <div>
+                <strong>CafePlatIA</strong>
+                <small>Pregunta por tu café, tu plátano o tus cuentas</small>
             </div>
-
-            <div class="topbar-actions">
-                {% block page_actions %}{% endblock %}
-            </div>
-
-            <div class="topbar-user">
-                {% if current_user.is_authenticated and not current_user.is_admin and current_user.finca %}
-                    <div class="user-finca-logo">
-                        {% if current_user.finca.logo %}
-                            <img src="{{ url_for('static', filename=current_user.finca.logo) }}"
-                                 alt="{{ current_user.finca.nombre }}">
-                        {% else %}
-                            <i class="bi bi-tree-fill"></i>
-                        {% endif %}
-                    </div>
-                {% else %}
-                    <div class="user-avatar">
-                        <i class="bi bi-person-fill"></i>
-                    </div>
-                {% endif %}
-
-                <div class="topbar-user-text">
-                    {% if current_user.is_authenticated %}
-                        <strong>{{ current_user.nombre }}</strong>
-
-                        {% if current_user.is_admin %}
-                            <span>Administrador general</span>
-                        {% elif current_user.finca %}
-                            <span>{{ current_user.finca.nombre }}</span>
-                        {% else %}
-                            <span>Sin finca asociada</span>
-                        {% endif %}
-                    {% else %}
-                        <strong>CaféPlat</strong>
-                        <span>Sin sesión</span>
-                    {% endif %}
-                </div>
-
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('auth.logout') }}"
-                       class="btn btn-sm btn-outline-secondary topbar-logout"
-                       title="Cerrar sesión">
-                        <i class="bi bi-box-arrow-right"></i>
-                    </a>
-                {% endif %}
-            </div>
-
+            <button type="button" class="ia-cerrar" id="iaCerrar" aria-label="Cerrar asistente">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </header>
 
-        <!-- Contenido dinámico -->
-        <section class="content-wrapper">
+        <div class="ia-mensajes" id="iaMensajes" aria-live="polite">
+            {# Sin sangría: las burbujas respetan los saltos de línea (pre-wrap). #}
+            <div class="ia-msg assistant">¡Hola! 🌱 Soy CafePlatIA. Te ayudo con la producción de {{ current_user.finca.nombre }}.
+{%- if alerta_cortada %}
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="flash-wrapper">
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
+🍌 Ojo: la próxima cortada es en el lote {{ alerta_cortada.lote }} ({{ alerta_cortada.fecha_corte.strftime('%d/%m/%Y') }}).
+{%- endif %}</div>
+        </div>
 
-            {% block content %}{% endblock %}
+        <div class="ia-sugerencias" id="iaSugerencias">
+            <button type="button">¿Cuándo es la próxima cortada?</button>
+            <button type="button">¿Cuánto pergamino dan 300 kg de cereza?</button>
+            <button type="button">¿Cómo va la finca?</button>
+        </div>
 
-        </section>
-
-    </main>
-
-</div>
+        <form class="ia-form" id="iaForm">
+            <label for="iaTexto" class="visually-hidden">Escribe tu pregunta</label>
+            <input type="text" id="iaTexto" placeholder="Escribe tu pregunta…" autocomplete="off" maxlength="1500">
+            <button type="submit" aria-label="Enviar pregunta">
+                <i class="bi bi-send-fill"></i>
+            </button>
+        </form>
+    </section>
+{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
-
-<script>
-(() => {
-    const body = document.body;
-    const sidebar = document.getElementById('sidebar');
-    const toggle = document.getElementById('sidebarToggle');
-    const close = document.getElementById('sidebarClose');
-    const overlay = document.getElementById('sidebarOverlay');
-    const main = document.querySelector('.main-content');
-    const mobile = window.matchMedia('(max-width: 991.98px)');
-    let desktopVisible = false;
-    const storageKey = 'CaféPlat.menu.visible';
-    try { desktopVisible = localStorage.getItem(storageKey) === 'true'; } catch (_) {}
-
-    function setVisible(visible, remember = false, focus = false) {
-        body.classList.toggle('cs-menu-visible', visible);
-        sidebar.inert = !visible;
-        sidebar.setAttribute('aria-hidden', String(!visible));
-        main.inert = visible && mobile.matches;
-        toggle.setAttribute('aria-expanded', String(visible));
-        toggle.setAttribute('aria-label', visible ? 'Ocultar menú' : 'Mostrar menú');
-        toggle.title = visible ? 'Ocultar menú' : 'Mostrar menú';
-        if (remember && !mobile.matches) {
-            desktopVisible = visible;
-            try { localStorage.setItem(storageKey, String(visible)); } catch (_) {}
-        }
-        if (focus) {
-            if (visible && mobile.matches) close.focus();
-            else if (!visible) toggle.focus();
-        }
-    }
-    function isVisible() { return body.classList.contains('cs-menu-visible'); }
-    // Captura el evento para evitar el doble toggle del main.js anterior.
-    function controlledClick(element, action) {
-        element.addEventListener('click', event => {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            action();
-        }, true);
-    }
-    controlledClick(toggle, () => setVisible(!isVisible(), true, true));
-    controlledClick(close, () => setVisible(false, true, true));
-    controlledClick(overlay, () => setVisible(false, false, true));
-    document.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && isVisible()) {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            setVisible(false, true, true);
-        } else if (event.key === 'Tab' && mobile.matches && isVisible()) {
-            const items = [...sidebar.querySelectorAll('a[href], button:not([disabled])')]
-                .filter(item => item.getClientRects().length);
-            const first = items[0], last = items[items.length - 1];
-            if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault(); last.focus();
-            } else if (!event.shiftKey && document.activeElement === last) {
-                event.preventDefault(); first.focus();
-            }
-        }
-    }, true);
-    sidebar.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', () => {
-            if (mobile.matches) setVisible(false);
-        });
-    });
-    mobile.addEventListener('change', () => setVisible(mobile.matches ? false : desktopVisible));
-    setVisible(mobile.matches ? false : desktopVisible);
-})();
-</script>
 
 {% block extra_js %}{% endblock %}
 

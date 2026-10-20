@@ -21,6 +21,7 @@ from app.models import (
     Inventario,
     MovimientoInventario
 )
+from app.services.cafe import KG_ARROBA_PERGAMINO
 
 
 reportes_bp = Blueprint(
@@ -190,7 +191,7 @@ def obtener_datos_reporte(finca_id, fecha_inicio, fecha_fin):
 
     for produccion in producciones_cafe:
         kilos = decimal_seguro(produccion.kilos_totales)
-        arrobas = kilos / Decimal("12") if kilos > 0 else Decimal("0")
+        arrobas = produccion.arrobas
 
         filas_produccion.append({
             "fecha": produccion.fecha,
@@ -320,11 +321,13 @@ def obtener_datos_reporte(finca_id, fecha_inicio, fecha_fin):
         for produccion in producciones_cafe
     )
 
-    total_cafe_arrobas = (
-        total_cafe_kg / Decimal("12")
-        if total_cafe_kg > 0
-        else Decimal("0")
+    # Cereza y pergamino no se suman en kilos: se llevan a pergamino seco.
+    total_cafe_pergamino_kg = suma_decimal(
+        produccion.kilos_pergamino
+        for produccion in producciones_cafe
     )
+
+    total_cafe_arrobas = total_cafe_pergamino_kg / KG_ARROBA_PERGAMINO
 
     total_agricola_kg = suma_decimal(
         produccion.kilos
@@ -382,6 +385,7 @@ def obtener_datos_reporte(finca_id, fecha_inicio, fecha_fin):
     resumen = {
         "total_cafe_kg": total_cafe_kg,
         "total_cafe_arrobas": total_cafe_arrobas,
+        "total_cafe_pergamino_kg": total_cafe_pergamino_kg,
         "total_agricola_kg": total_agricola_kg,
         "total_racimos": total_racimos,
 
@@ -538,7 +542,8 @@ def crear_excel(finca_activa, periodo_label, datos):
 
     resumen_items = [
         ("Total café producido kg", resumen["total_cafe_kg"]),
-        ("Total café producido arrobas", resumen["total_cafe_arrobas"]),
+        ("Café equivalente pergamino kg", resumen["total_cafe_pergamino_kg"]),
+        ("Café equivalente pergamino arrobas", resumen["total_cafe_arrobas"]),
         ("Total plátano / banano / comino kg", resumen["total_agricola_kg"]),
         ("Racimos producidos", resumen["total_racimos"]),
 

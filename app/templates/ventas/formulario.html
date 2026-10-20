@@ -237,7 +237,7 @@
                       placeholder="Ejemplo: venta en cooperativa, ajuste por humedad, pago parcial, venta directa, etc.">{% if venta and venta.observaciones %}{{ venta.observaciones }}{% endif %}</textarea>
         </div>
 
-        <div class="col-12 d-flex flex-column flex-md-row gap-2 justify-content-end mt-4">
+        <div class="form-actions col-12 d-flex flex-column flex-md-row gap-2 justify-content-end mt-4">
             <a href="{{ url_for('ventas.index') }}" class="btn btn-outline-secondary">
                 Cancelar
             </a>
@@ -372,7 +372,7 @@
             const kilos = convertirNumero(kilosCafeInput.value);
             const precioArroba = convertirNumero(precioArrobaInput.value);
 
-            const arrobas = kilos / 12;
+            const arrobas = kilos / 12.5; // arroba de pergamino seco
             const valorEsperado = arrobas * precioArroba;
 
             arrobasCafeInput.value = kilos > 0 ? formatearNumero(arrobas, 2) + " arrobas" : "";

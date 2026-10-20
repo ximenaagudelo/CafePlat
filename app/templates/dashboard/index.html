@@ -1,480 +1,183 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard · CaféPlat{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
-
-{% block page_actions %}
-    <a href="{{ url_for('ventas.index') }}" class="btn btn-success btn-sm">
-        <i class="bi bi-cash-coin me-1"></i>
-        Ver ventas
-    </a>
-
-    <a href="{{ url_for('reportes.index') }}" class="btn btn-outline-primary btn-sm">
-        <i class="bi bi-graph-up-arrow me-1"></i>
-        Reportes
-    </a>
-{% endblock %}
+{% block title %}Inicio · CaféPlat{% endblock %}
+{% block page_title %}Inicio{% endblock %}
 
 {% macro dinero(valor) -%}
     $ {{ "{:,.0f}".format(valor|default(0, true)|float).replace(",", ".") }}
 {%- endmacro %}
 
-{% macro decimal(valor) -%}
-    {{ "{:,.1f}".format(valor|default(0, true)|float).replace(",", "X").replace(".", ",").replace("X", ".") }}
+{% macro decimal(valor, d=1) -%}
+    {{ ("{:,." ~ d ~ "f}").format(valor|default(0, true)|float).replace(",", "X").replace(".", ",").replace("X", ".") }}
 {%- endmacro %}
 
-{% macro entero(valor) -%}
-    {{ "{:,.0f}".format(valor|default(0, true)|float).replace(",", ".") }}
+{% macro fecha_corta(f) -%}
+    {% set meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'] %}
+    {{- f.day }} {{ meses[f.month - 1] -}}
 {%- endmacro %}
 
 {% block content %}
 
-{% set cafe_kg = produccion_cafe_total|default(0, true)|float %}
-{% set cafe_arrobas = produccion_cafe_arrobas|default(0, true)|float %}
-{% set platano_kg = produccion_platano_kilos|default(0, true)|float %}
-{% set platano_racimos = produccion_platano_racimos|default(0, true)|float %}
-
-{% set venta_cafe_total = ventas_cafe|default(0, true)|float %}
-{% set venta_platano_total = ventas_platano|default(0, true)|float %}
-{% set ventas_general = total_ventas|default(0, true)|float %}
-
-{% set gastos_general = total_gastos|default(0, true)|float %}
-{% set mano_obra = total_mano_obra|default(0, true)|float %}
-{% set pendiente_pagar = total_pendiente|default(0, true)|float %}
+{% set dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'] %}
+{% set meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'] %}
 {% set balance = balance_estimado|default(0, true)|float %}
 
-<!-- Hero principal -->
-<div class="dashboard-hero mb-4">
-    <div class="dashboard-hero-content">
-        <div class="dashboard-hero-logo">
-            {% if finca_activa and finca_activa.logo %}
-                <img src="{{ url_for('static', filename=finca_activa.logo) }}"
-                     alt="{{ finca_activa.nombre }}">
+<!-- Saludo -->
+<section class="hero-finca">
+    <span class="hero-emojis" aria-hidden="true">☕🍌</span>
+    <div>
+        <span class="saludo">{{ dias_semana[hoy.weekday()] }} {{ hoy.day }} de {{ meses[hoy.month - 1] }}</span>
+        <h2>{{ finca_activa.nombre }}</h2>
+        <p>
+            {% if cortadas and cortadas[0].dias <= 0 %}
+                Hay racimos listos para cortar. Revisa el plátano hoy.
+            {% elif cortadas and cortadas[0].dias <= 7 %}
+                Se acerca una cortada de plátano esta semana.
             {% else %}
-                <i class="bi bi-tree-fill"></i>
+                Así va tu finca: café, plátano y cuentas en un vistazo.
             {% endif %}
+        </p>
+    </div>
+</section>
+
+<!-- Alertas: próxima cortada y próxima cosecha -->
+<div class="alertas-grid">
+
+    <article class="alerta-card platano">
+        <div class="alerta-top">
+            <h3>🍌 Próxima cortada</h3>
+            <a href="{{ url_for('produccion_platano.nuevo_embolsado') }}" class="btn btn-outline-warning btn-sm">
+                + Embolsado
+            </a>
         </div>
 
+        {% if cortadas %}
+            {% set c = cortadas[0] %}
+            <div class="alerta-principal">
+                {% if c.dias <= 0 %}
+                    <span class="display-num">¡Hoy!</span>
+                    <span class="text-muted">{{ 'lista desde el ' ~ fecha_corta(c.fecha_corte) if c.dias < 0 else 'lista para cortar' }}</span>
+                {% else %}
+                    <span class="display-num">{{ c.dias }}</span>
+                    <span class="text-muted">{{ 'día' if c.dias == 1 else 'días' }} · {{ fecha_corta(c.fecha_corte) }}</span>
+                {% endif %}
+            </div>
+            <p class="mb-0 mt-2">Lote <strong>{{ c.lote }}</strong> · {{ c.racimos }} racimos embolsados</p>
+
+            {% if cortadas|length > 1 %}
+                <ul class="alerta-lista">
+                    {% for item in cortadas[1:] %}
+                        <li>
+                            <span>{{ item.lote }} · {{ item.racimos }} racimos</span>
+                            <span>{{ fecha_corta(item.fecha_corte) }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% else %}
+            <p class="text-muted mb-0">
+                Registra los embolsados y aquí te aviso cuándo toca cortar cada lote.
+            </p>
+        {% endif %}
+    </article>
+
+    <article class="alerta-card cafe">
+        <div class="alerta-top">
+            <h3>🌸 Próxima cosecha de café</h3>
+            <a href="{{ url_for('produccion_cafe.nueva_florecida') }}" class="btn btn-outline-light btn-sm">
+                + Florecida
+            </a>
+        </div>
+
+        {% if cosechas_cafe %}
+            {% set f = cosechas_cafe[0] %}
+            <div class="alerta-principal">
+                {% if f.dias_faltantes > 0 %}
+                    <span class="display-num">{{ f.dias_faltantes }}</span>
+                    <span class="text-muted">días para empezar</span>
+                {% else %}
+                    <span class="display-num">En cosecha</span>
+                {% endif %}
+            </div>
+            <p class="mb-0 mt-2">
+                Lote <strong>{{ f.florecida.lote }}</strong> ·
+                del {{ fecha_corta(f.fecha_inicio_cosecha) }} al {{ fecha_corta(f.fecha_fin_cosecha) }}
+            </p>
+        {% else %}
+            <p class="text-muted mb-0">
+                Registra las florecidas y calculo cuándo empieza la cosecha (7 a 9 meses después).
+            </p>
+        {% endif %}
+    </article>
+
+</div>
+
+<!-- Indicadores -->
+<div class="kpi-grid">
+    <a href="{{ url_for('produccion_cafe.index') }}" class="dashboard-kpi-card">
+        <span class="emoji" aria-hidden="true">☕</span>
+        <span class="kicker">Café pergamino</span>
+        <strong>{{ decimal(resumen_cafe.arrobas_equivalentes, 1) }} @</strong>
+        <small>{{ decimal(resumen_cafe.pergamino_equivalente) }} kg equivalentes</small>
+    </a>
+
+    <a href="{{ url_for('produccion_platano.index') }}" class="dashboard-kpi-card">
+        <span class="emoji" aria-hidden="true">🍌</span>
+        <span class="kicker">Plátano</span>
+        <strong>{{ decimal(produccion_platano_kilos, 0) }} kg</strong>
+        <small>{{ decimal(produccion_platano_racimos, 0) }} racimos</small>
+    </a>
+
+    <a href="{{ url_for('ventas.index') }}" class="dashboard-kpi-card">
+        <span class="emoji" aria-hidden="true">💰</span>
+        <span class="kicker">Ventas del mes</span>
+        <strong>{{ dinero(ventas_mes) }}</strong>
+        <small>{{ dinero(total_ventas) }} en total</small>
+    </a>
+
+    <a href="{{ url_for('trabajadores.index') }}" class="dashboard-kpi-card">
+        <span class="emoji" aria-hidden="true">👷</span>
+        <span class="kicker">Por pagar</span>
+        <strong>{{ dinero(total_pendiente) }}</strong>
+        <small>{{ trabajos_pendientes_pago }} {{ 'jornal pendiente' if trabajos_pendientes_pago == 1 else 'jornales pendientes' }}</small>
+    </a>
+</div>
+
+<!-- Balance -->
+<section class="balance-card">
+    <div>
+        <span class="kicker">Balance estimado</span>
+        <div class="display-num mt-2 {{ 'positivo' if balance >= 0 else 'negativo' }}">{{ dinero(balance) }}</div>
+    </div>
+    <div class="balance-filas">
         <div>
-            <span class="dashboard-kicker">Panel ejecutivo de finca</span>
-
-            <h2>
-                {{ finca_activa.nombre if finca_activa else "CaféPlat" }}
-            </h2>
-
-            <p>
-                Resumen simple de producción, ventas, pagos pendientes y estado operativo.
-            </p>
-
-            <div class="dashboard-hero-badges">
-                <span class="soft-badge success">
-                    <i class="bi bi-shield-check"></i>
-                    Finca activa
-                </span>
-
-                {% if balance >= 0 %}
-                    <span class="soft-badge success">
-                        <i class="bi bi-graph-up-arrow"></i>
-                        Balance positivo
-                    </span>
-                {% else %}
-                    <span class="soft-badge warning">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        Revisar balance
-                    </span>
-                {% endif %}
-
-                {% if pendiente_pagar > 0 %}
-                    <span class="soft-badge warning">
-                        <i class="bi bi-clock-history"></i>
-                        Pagos pendientes
-                    </span>
-                {% else %}
-                    <span class="soft-badge success">
-                        <i class="bi bi-check-circle"></i>
-                        Pagos al día
-                    </span>
-                {% endif %}
-            </div>
+            <span class="kicker">Ventas café</span>
+            <strong>{{ dinero(ventas_cafe) }}</strong>
+        </div>
+        <div>
+            <span class="kicker">Ventas plátano</span>
+            <strong>{{ dinero(ventas_platano) }}</strong>
+        </div>
+        <div>
+            <span class="kicker">Gastos</span>
+            <strong>{{ dinero(total_gastos) }}</strong>
+        </div>
+        <div>
+            <span class="kicker">Mano de obra</span>
+            <strong>{{ dinero(total_mano_obra) }}</strong>
         </div>
     </div>
-</div>
-
-<!-- Indicadores principales -->
-<div class="row g-3 mb-4">
-
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="dashboard-kpi-card coffee">
-            <div class="kpi-top">
-                <div class="kpi-icon">
-                    <i class="bi bi-cup-hot-fill"></i>
-                </div>
-                <span>Producción café</span>
-            </div>
-
-            <h3>{{ decimal(cafe_kg) }} kg</h3>
-
-            <p>
-                {{ decimal(cafe_arrobas) }} arrobas registradas
-            </p>
-
-            <a href="{{ url_for('produccion_cafe.index') }}" class="kpi-link">
-                Ver café
-                <i class="bi bi-arrow-right"></i>
-            </a>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="dashboard-kpi-card banana">
-            <div class="kpi-top">
-                <div class="kpi-icon">
-                    <i class="bi bi-basket-fill"></i>
-                </div>
-                <span>Producción plátano</span>
-            </div>
-
-            <h3>{{ decimal(platano_kg) }} kg</h3>
-
-            <p>
-                {{ entero(platano_racimos) }} racimos registrados
-            </p>
-
-            <a href="{{ url_for('produccion_platano.index') }}" class="kpi-link">
-                Ver producción
-                <i class="bi bi-arrow-right"></i>
-            </a>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="dashboard-kpi-card sales">
-            <div class="kpi-top">
-                <div class="kpi-icon">
-                    <i class="bi bi-cash-coin"></i>
-                </div>
-                <span>Ventas totales</span>
-            </div>
-
-            <h3>{{ dinero(ventas_general) }}</h3>
-
-            <p>
-                Café y plátano registrados en ventas
-            </p>
-
-            <a href="{{ url_for('ventas.index') }}" class="kpi-link">
-                Ver ventas
-                <i class="bi bi-arrow-right"></i>
-            </a>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="dashboard-kpi-card pending">
-            <div class="kpi-top">
-                <div class="kpi-icon">
-                    <i class="bi bi-hourglass-split"></i>
-                </div>
-                <span>Pendiente por pagar</span>
-            </div>
-
-            <h3>{{ dinero(pendiente_pagar) }}</h3>
-
-            <p>
-                Mano de obra pendiente
-            </p>
-
-            <a href="{{ url_for('trabajadores.index') }}" class="kpi-link">
-                Ver trabajadores
-                <i class="bi bi-arrow-right"></i>
-            </a>
-        </div>
-    </div>
-
-</div>
-
-<!-- Ventas por producto -->
-<div class="row g-3 mb-4">
-
-    <div class="col-12 col-lg-4">
-        <div class="mini-summary-card">
-            <div class="mini-summary-icon coffee">
-                <i class="bi bi-cup-hot-fill"></i>
-            </div>
-
-            <div>
-                <span>Ventas de café</span>
-                <strong>{{ dinero(venta_cafe_total) }}</strong>
-                <small>
-                    {{ decimal(kilos_cafe_vendidos) }} kg · {{ decimal(arrobas_cafe_vendidas) }} arrobas
-                </small>
-            </div>
-
-            <a href="{{ url_for('ventas.index') }}">
-                <i class="bi bi-arrow-right"></i>
-            </a>
-        </div>
-    </div>
-
-    <div class="col-12 col-lg-4">
-        <div class="mini-summary-card">
-            <div class="mini-summary-icon banana">
-                <i class="bi bi-basket-fill"></i>
-            </div>
-
-            <div>
-                <span>Ventas de plátano</span>
-                <strong>{{ dinero(venta_platano_total) }}</strong>
-                <small>
-                    {{ decimal(kilos_platano_vendidos) }} kg vendidos
-                </small>
-            </div>
-
-            <a href="{{ url_for('ventas.index') }}">
-                <i class="bi bi-arrow-right"></i>
-            </a>
-        </div>
-    </div>
-
-    <div class="col-12 col-lg-4">
-        <div class="mini-summary-card">
-            <div class="mini-summary-icon sales">
-                <i class="bi bi-calculator"></i>
-            </div>
-
-            <div>
-                <span>Total vendido</span>
-                <strong>{{ dinero(ventas_general) }}</strong>
-                <small>
-                    Ventas acumuladas registradas
-                </small>
-            </div>
-
-            <a href="{{ url_for('ventas.index') }}">
-                <i class="bi bi-arrow-right"></i>
-            </a>
-        </div>
-    </div>
-
-</div>
-
-<!-- Resumen financiero y productivo -->
-<div class="row g-4 mb-4">
-
-    <div class="col-12 col-xl-7">
-        <div class="dashboard-panel h-100">
-            <div class="dashboard-panel-header">
-                <div>
-                    <span>Resumen financiero</span>
-                    <h5>Ingresos, costos y balance</h5>
-                </div>
-
-                <div class="panel-icon finance">
-                    <i class="bi bi-wallet2"></i>
-                </div>
-            </div>
-
-            <div class="finance-summary">
-                <div class="finance-row positive">
-                    <span>
-                        <i class="bi bi-arrow-down-circle"></i>
-                        Ventas registradas
-                    </span>
-                    <strong>{{ dinero(ventas_general) }}</strong>
-                </div>
-
-                <div class="finance-row negative">
-                    <span>
-                        <i class="bi bi-receipt-cutoff"></i>
-                        Gastos e insumos
-                    </span>
-                    <strong>{{ dinero(gastos_general) }}</strong>
-                </div>
-
-                <div class="finance-row negative">
-                    <span>
-                        <i class="bi bi-person-workspace"></i>
-                        Mano de obra
-                    </span>
-                    <strong>{{ dinero(mano_obra) }}</strong>
-                </div>
-
-                <div class="finance-row warning">
-                    <span>
-                        <i class="bi bi-clock-history"></i>
-                        Pendiente por pagar
-                    </span>
-                    <strong>{{ dinero(pendiente_pagar) }}</strong>
-                </div>
-
-                <div class="finance-total {% if balance >= 0 %}positive{% else %}negative{% endif %}">
-                    <span>Balance estimado</span>
-                    <strong>{{ dinero(balance) }}</strong>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-xl-5">
-        <div class="dashboard-panel h-100">
-            <div class="dashboard-panel-header">
-                <div>
-                    <span>Resumen productivo</span>
-                    <h5>Café y plátano</h5>
-                </div>
-
-                <div class="panel-icon production">
-                    <i class="bi bi-flower1"></i>
-                </div>
-            </div>
-
-            <div class="production-summary">
-                <div class="production-item">
-                    <div class="production-item-icon coffee">
-                        <i class="bi bi-cup-hot-fill"></i>
-                    </div>
-
-                    <div>
-                        <strong>Café producido</strong>
-                        <span>{{ decimal(cafe_kg) }} kg · {{ decimal(cafe_arrobas) }} arrobas</span>
-                    </div>
-                </div>
-
-                <div class="production-item">
-                    <div class="production-item-icon banana">
-                        <i class="bi bi-basket-fill"></i>
-                    </div>
-
-                    <div>
-                        <strong>Plátano producido</strong>
-                        <span>{{ decimal(platano_kg) }} kg · {{ entero(platano_racimos) }} racimos</span>
-                    </div>
-                </div>
-
-                <div class="production-item">
-                    <div class="production-item-icon sales">
-                        <i class="bi bi-currency-dollar"></i>
-                    </div>
-
-                    <div>
-                        <strong>Ventas principales</strong>
-                        <span>Café {{ dinero(venta_cafe_total) }} · Plátano {{ dinero(venta_platano_total) }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<!-- Estado operativo y accesos rápidos -->
-<div class="row g-4">
-
-    <div class="col-12 col-xl-7">
-        <div class="dashboard-panel h-100">
-            <div class="dashboard-panel-header mb-3">
-                <div>
-                    <span>Estado operativo</span>
-                    <h5>Lectura rápida de la finca</h5>
-                </div>
-
-                <div class="panel-icon status">
-                    <i class="bi bi-clipboard2-pulse"></i>
-                </div>
-            </div>
-
-            <div class="row g-3">
-
-                <div class="col-12 col-md-4">
-                    <div class="status-card {% if cafe_kg > 0 or platano_kg > 0 %}ok{% else %}neutral{% endif %}">
-                        <i class="bi bi-flower2"></i>
-                        <strong>Producción</strong>
-
-                        {% if cafe_kg > 0 or platano_kg > 0 %}
-                            <span>Hay producción registrada.</span>
-                        {% else %}
-                            <span>Aún no hay producción registrada.</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="col-12 col-md-4">
-                    <div class="status-card {% if pendiente_pagar > 0 %}warning{% else %}ok{% endif %}">
-                        <i class="bi bi-person-check"></i>
-                        <strong>Pagos</strong>
-
-                        {% if pendiente_pagar > 0 %}
-                            <span>Hay pagos pendientes.</span>
-                        {% else %}
-                            <span>Pagos al día.</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="col-12 col-md-4">
-                    <div class="status-card {% if balance >= 0 %}ok{% else %}danger{% endif %}">
-                        <i class="bi bi-graph-up"></i>
-                        <strong>Finanzas</strong>
-
-                        {% if balance >= 0 %}
-                            <span>Balance positivo.</span>
-                        {% else %}
-                            <span>Revisar costos y ventas.</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-xl-5">
-        <div class="dashboard-panel h-100">
-            <div class="dashboard-panel-header">
-                <div>
-                    <span>Accesos rápidos</span>
-                    <h5>Entrar a cada sección</h5>
-                </div>
-
-                <div class="panel-icon status">
-                    <i class="bi bi-grid-1x2"></i>
-                </div>
-            </div>
-
-            <div class="quick-actions-grid">
-                <a href="{{ url_for('produccion_cafe.index') }}" class="quick-action">
-                    <i class="bi bi-cup-hot-fill"></i>
-                    <span>Café</span>
-                </a>
-
-                <a href="{{ url_for('produccion_platano.index') }}" class="quick-action">
-                    <i class="bi bi-basket-fill"></i>
-                    <span>Plátano</span>
-                </a>
-
-                <a href="{{ url_for('ventas.index') }}" class="quick-action">
-                    <i class="bi bi-cash-coin"></i>
-                    <span>Ventas</span>
-                </a>
-
-                <a href="{{ url_for('trabajadores.index') }}" class="quick-action">
-                    <i class="bi bi-people-fill"></i>
-                    <span>Pagos</span>
-                </a>
-
-                <a href="{{ url_for('gastos.index') }}" class="quick-action">
-                    <i class="bi bi-receipt-cutoff"></i>
-                    <span>Gastos</span>
-                </a>
-
-                <a href="{{ url_for('reportes.index') }}" class="quick-action">
-                    <i class="bi bi-graph-up-arrow"></i>
-                    <span>Reportes</span>
-                </a>
-            </div>
-        </div>
-    </div>
-
+</section>
+
+<!-- Registrar rápido -->
+<h2 class="section-title mb-3">Registrar rápido</h2>
+<div class="atajos">
+    <a href="{{ url_for('produccion_cafe.nueva_produccion') }}" class="atajo"><span aria-hidden="true">☕</span>Café</a>
+    <a href="{{ url_for('produccion_platano.nueva_produccion') }}" class="atajo"><span aria-hidden="true">🍌</span>Cortada</a>
+    <a href="{{ url_for('produccion_platano.nuevo_embolsado') }}" class="atajo"><span aria-hidden="true">🛍️</span>Embolsado</a>
+    <a href="{{ url_for('ventas.nueva') }}" class="atajo"><span aria-hidden="true">💰</span>Venta</a>
+    <a href="{{ url_for('trabajadores.nuevo_registro') }}" class="atajo"><span aria-hidden="true">👷</span>Jornal</a>
+    <a href="{{ url_for('gastos.nuevo') }}" class="atajo"><span aria-hidden="true">🧾</span>Gasto</a>
 </div>
 
 {% endblock %}

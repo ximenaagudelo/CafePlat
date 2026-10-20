@@ -7,6 +7,7 @@ from sqlalchemy import func
 
 from app.extensions import db
 from app.models import ProduccionPlatano, EmbolsadoPlatano
+from app.services.alertas import DIAS_GRACIA_CORTE, proximas_cortadas
 
 
 produccion_platano_bp = Blueprint(
@@ -98,30 +99,38 @@ def etiqueta_tipo_cultivo(tipo_cultivo):
 
 
 def preparar_embolsados(embolsados):
+    """Estado de cada embolsado, con las cortadas más cercanas primero."""
     hoy = date.today()
     resultado = []
 
     for embolsado in embolsados:
         fecha_corte = embolsado.fecha_estimada_corte
-        dias_faltantes = embolsado.dias_faltantes_corte
+        dias = (fecha_corte - hoy).days if fecha_corte else None
 
-        if fecha_corte and hoy < fecha_corte:
-            estado = "Pendiente"
-            badge = "bg-warning text-dark"
-        elif fecha_corte and hoy == fecha_corte:
-            estado = "Lista para corte"
-            badge = "bg-success"
+        if dias is None:
+            estado, badge = "Sin fecha", "bg-secondary"
+        elif dias > 7:
+            estado, badge = "Pendiente", "bg-secondary"
+        elif dias > 0:
+            estado, badge = "Esta semana", "bg-warning"
+        elif dias >= -DIAS_GRACIA_CORTE:
+            estado, badge = "Lista para corte", "bg-danger"
         else:
-            estado = "Revisar corte"
-            badge = "bg-secondary"
+            estado, badge = "Revisar corte", "bg-secondary"
 
         resultado.append({
             "embolsado": embolsado,
             "fecha_corte": fecha_corte,
-            "dias_faltantes": dias_faltantes,
+            "dias_faltantes": max(dias, 0) if dias is not None else 0,
             "estado": estado,
             "badge": badge
         })
+
+    # Primero lo que se corta pronto; al final lo que ya pasó hace tiempo.
+    resultado.sort(key=lambda item: (
+        item["estado"] == "Revisar corte",
+        item["fecha_corte"] or date.max
+    ))
 
     return resultado
 
@@ -285,7 +294,8 @@ def index():
         kilos_por_racimo_promedio=kilos_por_racimo_promedio,
         filtros=filtros,
         tipos_cultivo=TIPOS_CULTIVO,
-        etiqueta_tipo_cultivo=etiqueta_tipo_cultivo
+        etiqueta_tipo_cultivo=etiqueta_tipo_cultivo,
+        cortadas=proximas_cortadas(finca_activa.id)
     )
 
 
