@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // Convierte cada <i data-lucide="..."> en su ícono SVG.
+    if (window.lucide) window.lucide.createIcons();
+
     inicializarHojas();
     inicializarAsistente();
     animarTarjetas();

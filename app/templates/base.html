@@ -1,19 +1,18 @@
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="dark">
+<html lang="es" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#0d1510">
+    <meta name="theme-color" content="#244A35">
     <title>{% block title %}CaféPlat{% endblock %}</title>
 
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/CafePlat-isotipo.png') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 
     {% block extra_css %}{% endblock %}
@@ -22,35 +21,33 @@
 {% set endpoint = request.endpoint or '' %}
 {% set es_finca = current_user.is_authenticated and not current_user.is_admin and current_user.finca %}
 
-{# Navegación: (endpoint, prefijo activo, emoji, etiqueta). Se usa en el menú lateral y en la barra inferior. #}
+{# Navegación: (endpoint, prefijo activo, icono Lucide, etiqueta). Se usa en el menú lateral y en la barra inferior. #}
 {% if current_user.is_authenticated and current_user.is_admin %}
     {% set menu_principal = [
-        ('admin.index', 'admin.index', '🛡️', 'Panel'),
-        ('admin.fincas', 'admin.fincas', '🌳', 'Fincas'),
-        ('admin.usuarios', 'admin.usuarios', '👥', 'Usuarios'),
+        ('admin.index', 'admin.index', 'layout-dashboard', 'Panel'),
+        ('admin.fincas', 'admin.fincas', 'trees', 'Fincas'),
+        ('admin.usuarios', 'admin.usuarios', 'users', 'Usuarios'),
     ] %}
     {% set menu_extra = [] %}
 {% elif es_finca %}
     {% set menu_principal = [
-        ('dashboard.index', 'dashboard.', '🏡', 'Inicio'),
-        ('produccion_cafe.index', 'produccion_cafe.', '☕', 'Café'),
-        ('produccion_platano.index', 'produccion_platano.', '🍌', 'Plátano'),
-        ('ventas.index', 'ventas.', '💰', 'Ventas'),
+        ('dashboard.index', 'dashboard.', 'house', 'Inicio'),
+        ('produccion_cafe.index', 'produccion_cafe.', 'coffee', 'Café'),
+        ('produccion_platano.index', 'produccion_platano.', 'banana', 'Plátano'),
+        ('ventas.index', 'ventas.', 'wallet', 'Ventas'),
     ] %}
     {% set menu_extra = [
-        ('trabajadores.index', 'trabajadores.', '👷', 'Trabajadores'),
-        ('gastos.index', 'gastos.', '🧾', 'Gastos e insumos'),
-        ('inventario.index', 'inventario.', '📦', 'Inventario'),
-        ('reportes.index', 'reportes.', '📊', 'Reportes'),
+        ('trabajadores.index', 'trabajadores.', 'hard-hat', 'Trabajadores'),
+        ('gastos.index', 'gastos.', 'receipt', 'Gastos e insumos'),
+        ('inventario.index', 'inventario.', 'package', 'Inventario'),
+        ('reportes.index', 'reportes.', 'chart-column', 'Reportes'),
     ] %}
 {% else %}
     {% set menu_principal = [] %}
     {% set menu_extra = [] %}
 {% endif %}
 
-<body class="cp-app">
-
-<div class="cp-fondo" aria-hidden="true"></div>
+<body>
 
 <!-- Menú lateral (escritorio) -->
 <aside class="sidebar" aria-label="Menú principal">
@@ -70,17 +67,26 @@
     </a>
 
     <nav class="sidebar-menu">
-        {% for ruta, prefijo, emoji, etiqueta in menu_principal + menu_extra %}
+        {% for ruta, prefijo, icono, etiqueta in menu_principal %}
             <a href="{{ url_for(ruta) }}"
                class="menu-link {% if endpoint.startswith(prefijo) %}active{% endif %}"
                {% if endpoint.startswith(prefijo) %}aria-current="page"{% endif %}>
-                <span class="menu-emoji" aria-hidden="true">{{ emoji }}</span>
+                <i data-lucide="{{ icono }}" class="icon" aria-hidden="true"></i>
                 <span>{{ etiqueta }}</span>
             </a>
-            {% if loop.index == menu_principal|length and menu_extra %}
-                <hr class="menu-divider">
-            {% endif %}
         {% endfor %}
+
+        {% if menu_extra %}
+            <span class="menu-titulo">Administración</span>
+            {% for ruta, prefijo, icono, etiqueta in menu_extra %}
+                <a href="{{ url_for(ruta) }}"
+                   class="menu-link {% if endpoint.startswith(prefijo) %}active{% endif %}"
+                   {% if endpoint.startswith(prefijo) %}aria-current="page"{% endif %}>
+                    <i data-lucide="{{ icono }}" class="icon" aria-hidden="true"></i>
+                    <span>{{ etiqueta }}</span>
+                </a>
+            {% endfor %}
+        {% endif %}
     </nav>
 
     {% if current_user.is_authenticated %}
@@ -92,8 +98,8 @@
                     <small>{{ 'Administrador general' if current_user.is_admin else 'Usuario de finca' }}</small>
                 </span>
             </div>
-            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm w-100">
-                <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+            <a href="{{ url_for('auth.logout') }}" class="btn-salir">
+                <i data-lucide="log-out" class="icon" aria-hidden="true"></i> Cerrar sesión
             </a>
         </div>
     {% endif %}
@@ -126,8 +132,8 @@
             <a href="{{ url_for('produccion_platano.index') }}"
                class="cortada-chip estado-{{ alerta_cortada.estado }}"
                title="Próxima cortada de plátano">
-                <span aria-hidden="true">🍌</span>
-                <span class="cortada-chip-text">
+                <i data-lucide="bell-ring" class="icon" aria-hidden="true"></i>
+                <span>
                     {% if alerta_cortada.dias <= 0 %}
                         Cortada lista · {{ alerta_cortada.lote }}
                     {% elif alerta_cortada.dias == 1 %}
@@ -162,24 +168,24 @@
 {% if menu_principal %}
     <!-- Barra de botones inferior (celular) -->
     <nav class="bottom-nav" aria-label="Navegación">
-        {% for ruta, prefijo, emoji, etiqueta in menu_principal %}
+        {% for ruta, prefijo, icono, etiqueta in menu_principal %}
             <a href="{{ url_for(ruta) }}"
                class="bottom-nav-item {% if endpoint.startswith(prefijo) %}active{% endif %}"
                {% if endpoint.startswith(prefijo) %}aria-current="page"{% endif %}>
-                <span class="bottom-nav-emoji" aria-hidden="true">{{ emoji }}</span>
+                <i data-lucide="{{ icono }}" class="icon" aria-hidden="true"></i>
                 <span>{{ etiqueta }}</span>
             </a>
         {% endfor %}
 
         {% set ns = namespace(extra_activo=false) %}
-        {% for ruta, prefijo, emoji, etiqueta in menu_extra %}
+        {% for ruta, prefijo, icono, etiqueta in menu_extra %}
             {% if endpoint.startswith(prefijo) %}{% set ns.extra_activo = true %}{% endif %}
         {% endfor %}
         <button type="button"
                 class="bottom-nav-item {% if ns.extra_activo %}active{% endif %}"
                 data-abrir-hoja="hojaMas"
                 aria-haspopup="dialog">
-            <span class="bottom-nav-emoji" aria-hidden="true">☰</span>
+            <i data-lucide="menu" class="icon" aria-hidden="true"></i>
             <span>Más</span>
         </button>
     </nav>
@@ -189,14 +195,14 @@
     <div class="hoja" id="hojaMas" role="dialog" aria-modal="true" aria-label="Más secciones" hidden>
         <div class="hoja-asa" aria-hidden="true"></div>
         <div class="hoja-grid">
-            {% for ruta, prefijo, emoji, etiqueta in menu_extra %}
+            {% for ruta, prefijo, icono, etiqueta in menu_extra %}
                 <a href="{{ url_for(ruta) }}" class="hoja-item {% if endpoint.startswith(prefijo) %}active{% endif %}">
-                    <span aria-hidden="true">{{ emoji }}</span>
+                    <i data-lucide="{{ icono }}" class="icon" aria-hidden="true"></i>
                     {{ etiqueta }}
                 </a>
             {% endfor %}
             <a href="{{ url_for('auth.logout') }}" class="hoja-item salir">
-                <span aria-hidden="true">🚪</span>
+                <i data-lucide="log-out" class="icon" aria-hidden="true"></i>
                 Cerrar sesión
             </a>
         </div>
@@ -205,8 +211,8 @@
 
 {% if es_finca %}
     <!-- CafePlatIA -->
-    <button type="button" class="ia-fab" id="iaAbrir" aria-controls="iaPanel" aria-expanded="false">
-        <span aria-hidden="true">🌱</span>
+    <button type="button" class="ia-fab" id="iaAbrir" aria-controls="iaPanel" aria-expanded="false" aria-label="Abrir CafePlatIA">
+        <i data-lucide="sprout" class="icon" aria-hidden="true"></i>
         <span class="ia-fab-text">CafePlatIA</span>
     </button>
 
@@ -214,21 +220,24 @@
              data-url="{{ url_for('asistente.preguntar') }}"
              data-finca="{{ current_user.finca.id }}">
         <header class="ia-header">
-            <div>
-                <strong>CafePlatIA</strong>
-                <small>Pregunta por tu café, tu plátano o tus cuentas</small>
+            <div class="ia-header-marca">
+                <i data-lucide="sprout" class="icon" aria-hidden="true"></i>
+                <div>
+                    <strong>CafePlatIA</strong>
+                    <small>Pregunta por tu café, tu plátano o tus cuentas</small>
+                </div>
             </div>
             <button type="button" class="ia-cerrar" id="iaCerrar" aria-label="Cerrar asistente">
-                <i class="bi bi-x-lg"></i>
+                <i data-lucide="x" class="icon" aria-hidden="true"></i>
             </button>
         </header>
 
         <div class="ia-mensajes" id="iaMensajes" aria-live="polite">
             {# Sin sangría: las burbujas respetan los saltos de línea (pre-wrap). #}
-            <div class="ia-msg assistant">¡Hola! 🌱 Soy CafePlatIA. Te ayudo con la producción de {{ current_user.finca.nombre }}.
+            <div class="ia-msg assistant">Hola, soy CafePlatIA. Te ayudo con la producción de {{ current_user.finca.nombre }}.
 {%- if alerta_cortada %}
 
-🍌 Ojo: la próxima cortada es en el lote {{ alerta_cortada.lote }} ({{ alerta_cortada.fecha_corte.strftime('%d/%m/%Y') }}).
+Ojo: la próxima cortada de plátano es en el lote {{ alerta_cortada.lote }} ({{ alerta_cortada.fecha_corte.strftime('%d/%m/%Y') }}).
 {%- endif %}</div>
         </div>
 
@@ -242,13 +251,14 @@
             <label for="iaTexto" class="visually-hidden">Escribe tu pregunta</label>
             <input type="text" id="iaTexto" placeholder="Escribe tu pregunta…" autocomplete="off" maxlength="1500">
             <button type="submit" aria-label="Enviar pregunta">
-                <i class="bi bi-send-fill"></i>
+                <i data-lucide="send" class="icon" aria-hidden="true"></i>
             </button>
         </form>
     </section>
 {% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
 {% block extra_js %}{% endblock %}

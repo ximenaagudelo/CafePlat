@@ -8,14 +8,17 @@
 {% set hay_filtros = filtros.tipo_cafe or filtros.lote or filtros.fecha_inicio or filtros.fecha_fin %}
 
 <div class="page-intro">
-    <div>
-        <h2>☕ Producción de café</h2>
+    <div class="page-intro-texto">
+        <img class="page-foto" src="{{ url_for('static', filename='img/fotos/cafeto.jpg') }}" alt="Cerezas de café en el cafeto">
+        <div>
+        <h2>Producción de café</h2>
         <p>60 kg de cereza dan 12,5 kg de pergamino seco, una arroba. Los totales se llevan a pergamino para no mezclar kilos.</p>
+        </div>
     </div>
     <div class="acciones d-none d-md-flex">
-        <a href="{{ url_for('produccion_cafe.nueva_florecida') }}" class="btn btn-outline-light">🌸 Florecida</a>
+        <a href="{{ url_for('produccion_cafe.nueva_florecida') }}" class="btn btn-outline-secondary"><i data-lucide="flower-2" class="icon"></i> Florecida</a>
         <a href="{{ url_for('produccion_cafe.nueva_produccion') }}" class="btn btn-success">
-            <i class="bi bi-plus-lg"></i> Registrar café
+            <i data-lucide="plus" class="icon"></i> Registrar café
         </a>
     </div>
 </div>
@@ -24,7 +27,7 @@
 <div class="row g-3 mb-4">
     <div class="col-6 col-xl-3">
         <div class="stat-card cafe">
-            <span class="emoji" aria-hidden="true">🍒</span>
+            <span class="stat-icon"><i data-lucide="cherry"></i></span>
             <h6>Café cereza</h6>
             <h3>{{ resumen.kilos_cerezo|decimal_cafe }} kg</h3>
             <small>{{ resumen.arrobas_cerezo|decimal_cafe }} @ de 60 kg</small>
@@ -33,7 +36,7 @@
 
     <div class="col-6 col-xl-3">
         <div class="stat-card pergamino">
-            <span class="emoji" aria-hidden="true">🫘</span>
+            <span class="stat-icon"><i data-lucide="bean"></i></span>
             <h6>Café pergamino</h6>
             <h3>{{ resumen.kilos_pergamino|decimal_cafe }} kg</h3>
             <small>{{ resumen.arrobas_pergamino|decimal_cafe }} @ de 12,5 kg</small>
@@ -42,7 +45,7 @@
 
     <div class="col-6 col-xl-3">
         <div class="stat-card verde">
-            <span class="emoji" aria-hidden="true">⚖️</span>
+            <span class="stat-icon"><i data-lucide="scale"></i></span>
             <h6>Total en pergamino</h6>
             <h3>{{ resumen.arrobas_equivalentes|decimal_cafe }} @</h3>
             <small>{{ resumen.pergamino_equivalente|decimal_cafe }} kg equivalentes</small>
@@ -51,7 +54,7 @@
 
     <div class="col-6 col-xl-3">
         <div class="stat-card pergamino">
-            <span class="emoji" aria-hidden="true">🛻</span>
+            <span class="stat-icon"><i data-lucide="truck"></i></span>
             <h6>Cargas</h6>
             <h3>{{ resumen.cargas_equivalentes|decimal_cafe }}</h3>
             <small>10 @ = 125 kg pergamino</small>
@@ -62,7 +65,7 @@
 <!-- Filtros -->
 <details class="filtros" {% if hay_filtros %}open{% endif %}>
     <summary>
-        <i class="bi bi-funnel"></i> Filtrar
+        <i data-lucide="filter" class="icon"></i> Filtrar
         {% if hay_filtros %}<span class="activo">· filtros aplicados</span>{% endif %}
     </summary>
     <form method="GET" class="row g-3 align-items-end">
@@ -114,14 +117,14 @@
                             <div class="d-flex justify-content-between align-items-start gap-2">
                                 <div>
                                     <div class="record-title">
-                                        {{ '🍒' if produccion.tipo_cafe == 'cerezo' else '🫘' }} {{ produccion.lote }}
+                                        <i data-lucide="{{ 'cherry' if produccion.tipo_cafe == 'cerezo' else 'bean' }}" class="icon icon-cafe"></i> {{ produccion.lote }}
                                     </div>
                                     <div class="record-meta">
                                         {{ produccion.fecha.strftime("%d/%m/%Y") }} ·
                                         {{ 'Cereza' if produccion.tipo_cafe == 'cerezo' else 'Pergamino' }}
                                     </div>
                                 </div>
-                                <span class="badge {{ 'bg-danger' if produccion.tipo_cafe == 'cerezo' else 'bg-warning' }}">
+                                <span class="badge cafe">
                                     {{ produccion.kilos_totales|decimal_cafe }} kg
                                 </span>
                             </div>
@@ -144,13 +147,13 @@
                             <div class="record-actions">
                                 <a href="{{ url_for('produccion_cafe.editar_produccion', produccion_id=produccion.id) }}"
                                    class="btn btn-outline-secondary btn-sm">
-                                    <i class="bi bi-pencil"></i> Editar
+                                    <i data-lucide="pencil" class="icon"></i> Editar
                                 </a>
                                 <form action="{{ url_for('produccion_cafe.eliminar_produccion', produccion_id=produccion.id) }}"
                                       method="POST"
                                       onsubmit="return confirm('¿Seguro que deseas eliminar esta producción de café? Esta acción no se puede deshacer.');">
                                     <button type="submit" class="btn btn-outline-danger btn-sm">
-                                        <i class="bi bi-trash3"></i> Eliminar
+                                        <i data-lucide="trash-2" class="icon"></i> Eliminar
                                     </button>
                                 </form>
                             </div>
@@ -159,7 +162,7 @@
                 </div>
             {% else %}
                 <div class="empty-state">
-                    <span class="emoji" aria-hidden="true">☕</span>
+                    <span class="stat-icon"><i data-lucide="coffee"></i></span>
                     Todavía no hay café registrado{% if hay_filtros %} con esos filtros{% endif %}.
                 </div>
             {% endif %}
@@ -170,9 +173,9 @@
     <div class="col-12 col-xl-4">
         <section class="panel-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="section-title mb-0">🌸 Florecidas</h3>
+                <h3 class="section-title mb-0"><i data-lucide="flower-2" class="icon"></i> Florecidas</h3>
                 <a href="{{ url_for('produccion_cafe.nueva_florecida') }}" class="btn btn-sm btn-outline-success">
-                    <i class="bi bi-plus-lg"></i> Nueva
+                    <i data-lucide="plus" class="icon"></i> Nueva
                 </a>
             </div>
 
@@ -210,20 +213,20 @@
                     <div class="record-actions">
                         <a href="{{ url_for('produccion_cafe.editar_florecida', florecida_id=item.florecida.id) }}"
                            class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-pencil"></i> Editar
+                            <i data-lucide="pencil" class="icon"></i> Editar
                         </a>
                         <form action="{{ url_for('produccion_cafe.eliminar_florecida', florecida_id=item.florecida.id) }}"
                               method="POST"
                               onsubmit="return confirm('¿Seguro que deseas eliminar esta florecida? Esta acción no se puede deshacer.');">
                             <button type="submit" class="btn btn-outline-danger btn-sm">
-                                <i class="bi bi-trash3"></i> Eliminar
+                                <i data-lucide="trash-2" class="icon"></i> Eliminar
                             </button>
                         </form>
                     </div>
                 </article>
             {% else %}
                 <div class="empty-state">
-                    <span class="emoji" aria-hidden="true">🌸</span>
+                    <span class="stat-icon"><i data-lucide="flower-2"></i></span>
                     Todavía no hay florecidas registradas.
                 </div>
             {% endfor %}
@@ -234,9 +237,9 @@
 
 <!-- Botón de registrar fijo abajo en el celular -->
 <div class="form-actions d-md-none">
-    <a href="{{ url_for('produccion_cafe.nueva_florecida') }}" class="btn btn-outline-light">🌸 Florecida</a>
+    <a href="{{ url_for('produccion_cafe.nueva_florecida') }}" class="btn btn-outline-secondary"><i data-lucide="flower-2" class="icon"></i> Florecida</a>
     <a href="{{ url_for('produccion_cafe.nueva_produccion') }}" class="btn btn-success">
-        <i class="bi bi-plus-lg"></i> Registrar café
+        <i data-lucide="plus" class="icon"></i> Registrar café
     </a>
 </div>
 

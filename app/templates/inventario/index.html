@@ -16,13 +16,16 @@ $ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
 {% set hay_filtros = busqueda or categoria %}
 
 <div class="page-intro">
-    <div>
-        <h2>📦 Inventario</h2>
+    <div class="page-intro-texto">
+        <span class="stat-icon mb-0"><i data-lucide="package"></i></span>
+        <div>
+        <h2>Inventario</h2>
         <p>Insumos, herramientas y combustible que hay en la finca.</p>
+        </div>
     </div>
     <div class="acciones d-none d-md-flex">
         <a href="{{ url_for('inventario.crear') }}" class="btn btn-success">
-            <i class="bi bi-plus-lg"></i> Nuevo elemento
+            <i data-lucide="plus" class="icon"></i> Nuevo elemento
         </a>
     </div>
 </div>
@@ -30,7 +33,7 @@ $ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
 <div class="row g-3 mb-4">
     <div class="col-6 col-xl-4">
         <div class="stat-card verde">
-            <span class="emoji" aria-hidden="true">📦</span>
+            <span class="stat-icon"><i data-lucide="package"></i></span>
             <h6>Elementos</h6>
             <h3>{{ total_items }}</h3>
             <small>registrados</small>
@@ -38,7 +41,7 @@ $ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
     </div>
     <div class="col-6 col-xl-4">
         <div class="stat-card pergamino">
-            <span class="emoji" aria-hidden="true">🧮</span>
+            <span class="stat-icon"><i data-lucide="boxes"></i></span>
             <h6>Existencias</h6>
             <h3>{{ numero(total_existencias) }}</h3>
             <small>unidades en total</small>
@@ -46,7 +49,7 @@ $ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
     </div>
     <div class="col-12 col-xl-4">
         <div class="stat-card platano">
-            <span class="emoji" aria-hidden="true">💵</span>
+            <span class="stat-icon"><i data-lucide="banknote"></i></span>
             <h6>Valor estimado</h6>
             <h3>{{ dinero(valor_estimado_inventario) }}</h3>
             <small>según costo unitario</small>
@@ -56,7 +59,7 @@ $ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
 
 <details class="filtros" {% if hay_filtros %}open{% endif %}>
     <summary>
-        <i class="bi bi-search"></i> Buscar
+        <i data-lucide="search" class="icon"></i> Buscar
         {% if hay_filtros %}<span class="activo">· filtros aplicados</span>{% endif %}
     </summary>
     <form method="GET" class="row g-3 align-items-end">
@@ -116,10 +119,10 @@ $ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
 
                             <div class="record-actions">
                                 <a href="{{ url_for('inventario.movimiento', item_id=item.id) }}" class="btn btn-sm btn-outline-success">
-                                    <i class="bi bi-arrow-left-right"></i> Mover
+                                    <i data-lucide="arrow-left-right" class="icon"></i> Mover
                                 </a>
                                 <a href="{{ url_for('inventario.editar', item_id=item.id) }}" class="btn btn-sm btn-outline-secondary">
-                                    <i class="bi bi-pencil"></i> Editar
+                                    <i data-lucide="pencil" class="icon"></i> Editar
                                 </a>
                             </div>
                             <form method="POST"
@@ -127,7 +130,7 @@ $ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
                                   class="mt-2"
                                   onsubmit="return confirm('¿Eliminar este elemento del inventario?');">
                                 <button class="btn btn-sm btn-link text-danger w-100" type="submit">
-                                    <i class="bi bi-trash3"></i> Eliminar
+                                    <i data-lucide="trash-2" class="icon"></i> Eliminar
                                 </button>
                             </form>
                         </article>
@@ -135,7 +138,7 @@ $ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
                 </div>
             {% else %}
                 <div class="empty-state">
-                    <span class="emoji" aria-hidden="true">📦</span>
+                    <span class="stat-icon"><i data-lucide="package"></i></span>
                     {% if hay_filtros %}No hay elementos con esa búsqueda.{% else %}Todavía no hay elementos en el inventario.{% endif %}
                 </div>
             {% endif %}
@@ -151,7 +154,7 @@ $ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
                     {% for mov in ultimos_movimientos %}
                         <li>
                             <span>
-                                {% if mov.tipo_movimiento == "entrada" %}⬇️{% elif mov.tipo_movimiento == "salida" %}⬆️{% else %}🔧{% endif %}
+                                <i data-lucide="{{ {'entrada': 'arrow-down-to-line', 'salida': 'arrow-up-from-line'}.get(mov.tipo_movimiento, 'wrench') }}" class="icon text-muted"></i>
                                 {{ mov.item.nombre if mov.item else "-" }}
                                 <small class="d-block text-muted">{{ mov.motivo or mov.tipo_movimiento|capitalize }}</small>
                             </span>
@@ -171,7 +174,7 @@ $ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
 
 <div class="form-actions d-md-none">
     <a href="{{ url_for('inventario.crear') }}" class="btn btn-success">
-        <i class="bi bi-plus-lg"></i> Nuevo elemento
+        <i data-lucide="plus" class="icon"></i> Nuevo elemento
     </a>
 </div>
 

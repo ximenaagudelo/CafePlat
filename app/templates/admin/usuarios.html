@@ -5,7 +5,7 @@
 
 {% block page_actions %}
 <a href="{{ url_for('admin.nuevo_usuario') }}" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1 shadow-sm">
-    <i class="bi bi-person-plus" aria-hidden="true"></i>
+    <i data-lucide="user-plus" class="icon" aria-hidden="true"></i>
     <span>Nuevo Usuario</span>
 </a>
 {% endblock %}
@@ -13,7 +13,7 @@
 {% block content %}
 <div class="card border-0 shadow-sm rounded-3">
     <div class="card-header bg-white border-0 py-3 d-flex flex-wrap gap-2 justify-content-between align-items-center">
-        <h5 class="card-title mb-0 fw-bold"><i class="bi bi-people me-2 text-primary" aria-hidden="true"></i>Usuarios de CaféPlat</h5>
+        <h5 class="card-title mb-0 fw-bold"><i data-lucide="users" class="icon text-primary" aria-hidden="true"></i>Usuarios de CaféPlat</h5>
         <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
             {{ usuarios|length }} {% if usuarios|length == 1 %}usuario{% else %}usuarios{% endif %}
         </span>
@@ -54,7 +54,7 @@
         </div>
         {% else %}
         <div class="text-center py-5 text-muted">
-            <i class="bi bi-people fs-1 d-block mb-2" aria-hidden="true"></i>
+            <i data-lucide="users" class="icon fs-1 d-block mb-2" aria-hidden="true"></i>
             <h6 class="fw-bold">No hay usuarios registrados</h6>
             <a href="{{ url_for('admin.nuevo_usuario') }}" class="btn btn-primary btn-sm mt-2">Crear Usuario</a>
         </div>
