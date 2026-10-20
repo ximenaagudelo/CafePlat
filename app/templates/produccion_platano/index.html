@@ -8,14 +8,17 @@
 {% set hay_filtros = filtros.tipo_cultivo or filtros.lote or filtros.fecha_inicio or filtros.fecha_fin %}
 
 <div class="page-intro">
-    <div>
-        <h2>🍌 Plátano y banano</h2>
+    <div class="page-intro-texto">
+        <img class="page-foto" src="{{ url_for('static', filename='img/fotos/racimo-platano.jpg') }}" alt="Racimo de plátano en la mata">
+        <div>
+        <h2>Plátano y banano</h2>
         <p>Registra las cortadas y los embolsados. Con la fecha de embolsado te aviso cuándo toca cortar.</p>
+        </div>
     </div>
     <div class="acciones d-none d-md-flex">
-        <a href="{{ url_for('produccion_platano.nuevo_embolsado') }}" class="btn btn-outline-warning">🛍️ Embolsado</a>
+        <a href="{{ url_for('produccion_platano.nuevo_embolsado') }}" class="btn btn-outline-warning"><i data-lucide="shopping-bag" class="icon"></i> Embolsado</a>
         <a href="{{ url_for('produccion_platano.nueva_produccion') }}" class="btn btn-success">
-            <i class="bi bi-plus-lg"></i> Registrar cortada
+            <i data-lucide="plus" class="icon"></i> Registrar cortada
         </a>
     </div>
 </div>
@@ -24,26 +27,28 @@
 {% if cortadas %}
     {% set c = cortadas[0] %}
     <section class="alerta-card platano mb-4">
-        <div class="alerta-top">
-            <h3>🔔 Próxima cortada</h3>
-            <span class="dias-pill {{ c.estado }}">
-                {% if c.dias <= 0 %}Lista{% elif c.dias == 1 %}Mañana{% else %}En {{ c.dias }} días{% endif %}
-            </span>
+        <div class="alerta-cuerpo">
+            <div class="alerta-top">
+                <h3><i data-lucide="bell-ring" class="icon"></i> Próxima cortada</h3>
+                <span class="dias-pill {{ c.estado }}">
+                    {% if c.dias <= 0 %}Lista{% elif c.dias == 1 %}Mañana{% else %}En {{ c.dias }} días{% endif %}
+                </span>
+            </div>
+            <div class="alerta-principal">
+                <span class="display-num">{{ c.lote }}</span>
+                <span class="text-muted">{{ c.racimos }} racimos · {{ c.fecha_corte.strftime("%d/%m/%Y") }}</span>
+            </div>
+            {% if cortadas|length > 1 %}
+                <ul class="alerta-lista">
+                    {% for item in cortadas[1:] %}
+                        <li>
+                            <span>{{ item.lote }} · {{ item.racimos }} racimos</span>
+                            <span>{{ item.fecha_corte.strftime("%d/%m/%Y") }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
         </div>
-        <div class="alerta-principal">
-            <span class="display-num">{{ c.lote }}</span>
-            <span class="text-muted">{{ c.racimos }} racimos · {{ c.fecha_corte.strftime("%d/%m/%Y") }}</span>
-        </div>
-        {% if cortadas|length > 1 %}
-            <ul class="alerta-lista">
-                {% for item in cortadas[1:] %}
-                    <li>
-                        <span>{{ item.lote }} · {{ item.racimos }} racimos</span>
-                        <span>{{ item.fecha_corte.strftime("%d/%m/%Y") }}</span>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}
     </section>
 {% endif %}
 
@@ -51,7 +56,7 @@
 <div class="row g-3 mb-4">
     <div class="col-6 col-xl-3">
         <div class="stat-card platano">
-            <span class="emoji" aria-hidden="true">🍌</span>
+            <span class="stat-icon"><i data-lucide="banana"></i></span>
             <h6>Racimos cortados</h6>
             <h3>{{ total_racimos|entero_platano }}</h3>
             <small>{{ 'Con filtros' if hay_filtros else 'Total registrado' }}</small>
@@ -60,7 +65,7 @@
 
     <div class="col-6 col-xl-3">
         <div class="stat-card platano">
-            <span class="emoji" aria-hidden="true">⚖️</span>
+            <span class="stat-icon"><i data-lucide="scale"></i></span>
             <h6>Kilos</h6>
             <h3>{{ total_kilos|decimal_platano }}</h3>
             <small>kg cosechados</small>
@@ -69,7 +74,7 @@
 
     <div class="col-6 col-xl-3">
         <div class="stat-card verde">
-            <span class="emoji" aria-hidden="true">📏</span>
+            <span class="stat-icon"><i data-lucide="ruler"></i></span>
             <h6>Kg por racimo</h6>
             <h3>{{ kilos_por_racimo_promedio|decimal_platano }}</h3>
             <small>Promedio</small>
@@ -78,7 +83,7 @@
 
     <div class="col-6 col-xl-3">
         <div class="stat-card verde">
-            <span class="emoji" aria-hidden="true">🛍️</span>
+            <span class="stat-icon"><i data-lucide="shopping-bag"></i></span>
             <h6>Embolsados</h6>
             <h3>{{ total_embolsados|entero_platano }}</h3>
             <small>racimos en bolsa</small>
@@ -89,7 +94,7 @@
 <!-- Filtros -->
 <details class="filtros" {% if hay_filtros %}open{% endif %}>
     <summary>
-        <i class="bi bi-funnel"></i> Filtrar
+        <i data-lucide="filter" class="icon"></i> Filtrar
         {% if hay_filtros %}<span class="activo">· filtros aplicados</span>{% endif %}
     </summary>
     <form method="GET" class="row g-3 align-items-end">
@@ -131,9 +136,9 @@
     <div class="col-12 col-xl-4 order-xl-2">
         <section class="panel-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="section-title mb-0">🛍️ Embolsados</h3>
+                <h3 class="section-title mb-0"><i data-lucide="shopping-bag" class="icon"></i> Embolsados</h3>
                 <a href="{{ url_for('produccion_platano.nuevo_embolsado') }}" class="btn btn-sm btn-outline-warning">
-                    <i class="bi bi-plus-lg"></i> Nuevo
+                    <i data-lucide="plus" class="icon"></i> Nuevo
                 </a>
             </div>
 
@@ -174,20 +179,20 @@
                     <div class="record-actions">
                         <a href="{{ url_for('produccion_platano.editar_embolsado', embolsado_id=item.embolsado.id) }}"
                            class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-pencil"></i> Editar
+                            <i data-lucide="pencil" class="icon"></i> Editar
                         </a>
                         <form action="{{ url_for('produccion_platano.eliminar_embolsado', embolsado_id=item.embolsado.id) }}"
                               method="POST"
                               onsubmit="return confirm('¿Seguro que deseas eliminar este embolsado? Esta acción no se puede deshacer.');">
                             <button type="submit" class="btn btn-outline-danger btn-sm">
-                                <i class="bi bi-trash3"></i> Eliminar
+                                <i data-lucide="trash-2" class="icon"></i> Eliminar
                             </button>
                         </form>
                     </div>
                 </article>
             {% else %}
                 <div class="empty-state">
-                    <span class="emoji" aria-hidden="true">🛍️</span>
+                    <span class="stat-icon"><i data-lucide="shopping-bag"></i></span>
                     Todavía no hay embolsados. Regístralos para recibir la alerta de cortada.
                 </div>
             {% endfor %}
@@ -208,7 +213,7 @@
                         <article class="mobile-record-card">
                             <div class="d-flex justify-content-between align-items-start gap-2">
                                 <div>
-                                    <div class="record-title">🍌 {{ produccion.lote }}</div>
+                                    <div class="record-title"><i data-lucide="banana" class="icon icon-platano"></i> {{ produccion.lote }}</div>
                                     <div class="record-meta">
                                         {{ produccion.fecha.strftime("%d/%m/%Y") }} · {{ etiqueta_tipo_cultivo(produccion.tipo_cultivo) }}
                                     </div>
@@ -234,13 +239,13 @@
                             <div class="record-actions">
                                 <a href="{{ url_for('produccion_platano.editar_produccion', produccion_id=produccion.id) }}"
                                    class="btn btn-outline-secondary btn-sm">
-                                    <i class="bi bi-pencil"></i> Editar
+                                    <i data-lucide="pencil" class="icon"></i> Editar
                                 </a>
                                 <form action="{{ url_for('produccion_platano.eliminar_produccion', produccion_id=produccion.id) }}"
                                       method="POST"
                                       onsubmit="return confirm('¿Seguro que deseas eliminar esta producción? Esta acción no se puede deshacer.');">
                                     <button type="submit" class="btn btn-outline-danger btn-sm">
-                                        <i class="bi bi-trash3"></i> Eliminar
+                                        <i data-lucide="trash-2" class="icon"></i> Eliminar
                                     </button>
                                 </form>
                             </div>
@@ -249,7 +254,7 @@
                 </div>
             {% else %}
                 <div class="empty-state">
-                    <span class="emoji" aria-hidden="true">🍌</span>
+                    <span class="stat-icon"><i data-lucide="banana"></i></span>
                     Todavía no hay cortadas registradas{% if hay_filtros %} con esos filtros{% endif %}.
                 </div>
             {% endif %}
@@ -259,9 +264,9 @@
 </div>
 
 <div class="form-actions d-md-none">
-    <a href="{{ url_for('produccion_platano.nuevo_embolsado') }}" class="btn btn-outline-warning">🛍️ Embolsado</a>
+    <a href="{{ url_for('produccion_platano.nuevo_embolsado') }}" class="btn btn-outline-warning"><i data-lucide="shopping-bag" class="icon"></i> Embolsado</a>
     <a href="{{ url_for('produccion_platano.nueva_produccion') }}" class="btn btn-success">
-        <i class="bi bi-plus-lg"></i> Registrar cortada
+        <i data-lucide="plus" class="icon"></i> Registrar cortada
     </a>
 </div>
 

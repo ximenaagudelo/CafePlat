@@ -22,10 +22,10 @@
 {% set meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'] %}
 {% set balance = balance_estimado|default(0, true)|float %}
 
-<!-- Saludo -->
+<!-- Saludo con la finca: cafetal y plataneras en la misma ladera -->
 <section class="hero-finca">
-    <span class="hero-emojis" aria-hidden="true">☕🍌</span>
-    <div>
+    <img src="{{ url_for('static', filename='img/fotos/finca-cafe-platano.jpg') }}" alt="">
+    <div class="hero-finca-texto">
         <span class="saludo">{{ dias_semana[hoy.weekday()] }} {{ hoy.day }} de {{ meses[hoy.month - 1] }}</span>
         <h2>{{ finca_activa.nombre }}</h2>
         <p>
@@ -37,106 +37,121 @@
                 Así va tu finca: café, plátano y cuentas en un vistazo.
             {% endif %}
         </p>
+        <div class="hero-cultivos">
+            <span><i data-lucide="coffee" class="icon" aria-hidden="true"></i> Café</span>
+            <span><i data-lucide="banana" class="icon" aria-hidden="true"></i> Plátano</span>
+            {% if finca_activa.ubicacion %}
+                <span><i data-lucide="map-pin" class="icon" aria-hidden="true"></i> {{ finca_activa.ubicacion }}</span>
+            {% endif %}
+        </div>
     </div>
 </section>
 
-<!-- Alertas: próxima cortada y próxima cosecha -->
+<!-- Próxima cosecha de café y próxima cortada de plátano -->
 <div class="alertas-grid">
 
-    <article class="alerta-card platano">
-        <div class="alerta-top">
-            <h3>🍌 Próxima cortada</h3>
-            <a href="{{ url_for('produccion_platano.nuevo_embolsado') }}" class="btn btn-outline-warning btn-sm">
-                + Embolsado
-            </a>
-        </div>
-
-        {% if cortadas %}
-            {% set c = cortadas[0] %}
-            <div class="alerta-principal">
-                {% if c.dias <= 0 %}
-                    <span class="display-num">¡Hoy!</span>
-                    <span class="text-muted">{{ 'lista desde el ' ~ fecha_corta(c.fecha_corte) if c.dias < 0 else 'lista para cortar' }}</span>
-                {% else %}
-                    <span class="display-num">{{ c.dias }}</span>
-                    <span class="text-muted">{{ 'día' if c.dias == 1 else 'días' }} · {{ fecha_corta(c.fecha_corte) }}</span>
-                {% endif %}
+    <article class="alerta-card cafe">
+        <img class="alerta-foto" src="{{ url_for('static', filename='img/fotos/cerezas-cafe.jpg') }}"
+             alt="Cerezas de café maduras y verdes en la rama">
+        <div class="alerta-cuerpo">
+            <div class="alerta-top">
+                <h3><i data-lucide="flower-2" class="icon" aria-hidden="true"></i> Próxima cosecha de café</h3>
+                <a href="{{ url_for('produccion_cafe.nueva_florecida') }}" class="btn btn-outline-secondary btn-sm">
+                    <i data-lucide="plus" class="icon"></i> Florecida
+                </a>
             </div>
-            <p class="mb-0 mt-2">Lote <strong>{{ c.lote }}</strong> · {{ c.racimos }} racimos embolsados</p>
 
-            {% if cortadas|length > 1 %}
-                <ul class="alerta-lista">
-                    {% for item in cortadas[1:] %}
-                        <li>
-                            <span>{{ item.lote }} · {{ item.racimos }} racimos</span>
-                            <span>{{ fecha_corta(item.fecha_corte) }}</span>
-                        </li>
-                    {% endfor %}
-                </ul>
+            {% if cosechas_cafe %}
+                {% set f = cosechas_cafe[0] %}
+                <div class="alerta-principal">
+                    {% if f.dias_faltantes > 0 %}
+                        <span class="display-num">{{ f.dias_faltantes }}</span>
+                        <span class="text-muted">días para empezar</span>
+                    {% else %}
+                        <span class="display-num">En cosecha</span>
+                    {% endif %}
+                </div>
+                <p class="mb-0 mt-2">
+                    Lote <strong>{{ f.florecida.lote }}</strong> ·
+                    del {{ fecha_corta(f.fecha_inicio_cosecha) }} al {{ fecha_corta(f.fecha_fin_cosecha) }}
+                </p>
+            {% else %}
+                <p class="text-muted mb-0">
+                    Registra las florecidas y calculo cuándo empieza la cosecha (7 a 9 meses después).
+                </p>
             {% endif %}
-        {% else %}
-            <p class="text-muted mb-0">
-                Registra los embolsados y aquí te aviso cuándo toca cortar cada lote.
-            </p>
-        {% endif %}
+        </div>
     </article>
 
-    <article class="alerta-card cafe">
-        <div class="alerta-top">
-            <h3>🌸 Próxima cosecha de café</h3>
-            <a href="{{ url_for('produccion_cafe.nueva_florecida') }}" class="btn btn-outline-light btn-sm">
-                + Florecida
-            </a>
-        </div>
-
-        {% if cosechas_cafe %}
-            {% set f = cosechas_cafe[0] %}
-            <div class="alerta-principal">
-                {% if f.dias_faltantes > 0 %}
-                    <span class="display-num">{{ f.dias_faltantes }}</span>
-                    <span class="text-muted">días para empezar</span>
-                {% else %}
-                    <span class="display-num">En cosecha</span>
-                {% endif %}
+    <article class="alerta-card platano">
+        <img class="alerta-foto" src="{{ url_for('static', filename='img/fotos/racimo-platano.jpg') }}"
+             alt="Racimo de plátano verde en la mata">
+        <div class="alerta-cuerpo">
+            <div class="alerta-top">
+                <h3><i data-lucide="bell-ring" class="icon" aria-hidden="true"></i> Próxima cortada de plátano</h3>
+                <a href="{{ url_for('produccion_platano.nuevo_embolsado') }}" class="btn btn-outline-warning btn-sm">
+                    <i data-lucide="plus" class="icon"></i> Embolsado
+                </a>
             </div>
-            <p class="mb-0 mt-2">
-                Lote <strong>{{ f.florecida.lote }}</strong> ·
-                del {{ fecha_corta(f.fecha_inicio_cosecha) }} al {{ fecha_corta(f.fecha_fin_cosecha) }}
-            </p>
-        {% else %}
-            <p class="text-muted mb-0">
-                Registra las florecidas y calculo cuándo empieza la cosecha (7 a 9 meses después).
-            </p>
-        {% endif %}
+
+            {% if cortadas %}
+                {% set c = cortadas[0] %}
+                <div class="alerta-principal">
+                    {% if c.dias <= 0 %}
+                        <span class="display-num">Hoy</span>
+                        <span class="text-muted">{{ 'lista desde el ' ~ fecha_corta(c.fecha_corte) if c.dias < 0 else 'lista para cortar' }}</span>
+                    {% else %}
+                        <span class="display-num">{{ c.dias }}</span>
+                        <span class="text-muted">{{ 'día' if c.dias == 1 else 'días' }} · {{ fecha_corta(c.fecha_corte) }}</span>
+                    {% endif %}
+                </div>
+                <p class="mb-0 mt-2">Lote <strong>{{ c.lote }}</strong> · {{ c.racimos }} racimos embolsados</p>
+
+                {% if cortadas|length > 1 %}
+                    <ul class="alerta-lista">
+                        {% for item in cortadas[1:] %}
+                            <li>
+                                <span>{{ item.lote }} · {{ item.racimos }} racimos</span>
+                                <span>{{ fecha_corta(item.fecha_corte) }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% else %}
+                <p class="text-muted mb-0">
+                    Registra los embolsados y aquí te aviso cuándo toca cortar cada lote.
+                </p>
+            {% endif %}
+        </div>
     </article>
 
 </div>
 
 <!-- Indicadores -->
 <div class="kpi-grid">
-    <a href="{{ url_for('produccion_cafe.index') }}" class="dashboard-kpi-card">
-        <span class="emoji" aria-hidden="true">☕</span>
-        <span class="kicker">Café pergamino</span>
+    <a href="{{ url_for('produccion_cafe.index') }}" class="dashboard-kpi-card cafe">
+        <span class="stat-icon"><i data-lucide="coffee"></i></span>
+        <span class="kicker">Café en pergamino</span>
         <strong>{{ decimal(resumen_cafe.arrobas_equivalentes, 1) }} @</strong>
         <small>{{ decimal(resumen_cafe.pergamino_equivalente) }} kg equivalentes</small>
     </a>
 
-    <a href="{{ url_for('produccion_platano.index') }}" class="dashboard-kpi-card">
-        <span class="emoji" aria-hidden="true">🍌</span>
-        <span class="kicker">Plátano</span>
+    <a href="{{ url_for('produccion_platano.index') }}" class="dashboard-kpi-card platano">
+        <span class="stat-icon"><i data-lucide="banana"></i></span>
+        <span class="kicker">Plátano cosechado</span>
         <strong>{{ decimal(produccion_platano_kilos, 0) }} kg</strong>
         <small>{{ decimal(produccion_platano_racimos, 0) }} racimos</small>
     </a>
 
     <a href="{{ url_for('ventas.index') }}" class="dashboard-kpi-card">
-        <span class="emoji" aria-hidden="true">💰</span>
+        <span class="stat-icon"><i data-lucide="wallet"></i></span>
         <span class="kicker">Ventas del mes</span>
         <strong>{{ dinero(ventas_mes) }}</strong>
         <small>{{ dinero(total_ventas) }} en total</small>
     </a>
 
     <a href="{{ url_for('trabajadores.index') }}" class="dashboard-kpi-card">
-        <span class="emoji" aria-hidden="true">👷</span>
+        <span class="stat-icon"><i data-lucide="hand-coins"></i></span>
         <span class="kicker">Por pagar</span>
         <strong>{{ dinero(total_pendiente) }}</strong>
         <small>{{ trabajos_pendientes_pago }} {{ 'jornal pendiente' if trabajos_pendientes_pago == 1 else 'jornales pendientes' }}</small>
@@ -151,11 +166,11 @@
     </div>
     <div class="balance-filas">
         <div>
-            <span class="kicker">Ventas café</span>
+            <span class="kicker">Ventas de café</span>
             <strong>{{ dinero(ventas_cafe) }}</strong>
         </div>
         <div>
-            <span class="kicker">Ventas plátano</span>
+            <span class="kicker">Ventas de plátano</span>
             <strong>{{ dinero(ventas_platano) }}</strong>
         </div>
         <div>
@@ -172,12 +187,24 @@
 <!-- Registrar rápido -->
 <h2 class="section-title mb-3">Registrar rápido</h2>
 <div class="atajos">
-    <a href="{{ url_for('produccion_cafe.nueva_produccion') }}" class="atajo"><span aria-hidden="true">☕</span>Café</a>
-    <a href="{{ url_for('produccion_platano.nueva_produccion') }}" class="atajo"><span aria-hidden="true">🍌</span>Cortada</a>
-    <a href="{{ url_for('produccion_platano.nuevo_embolsado') }}" class="atajo"><span aria-hidden="true">🛍️</span>Embolsado</a>
-    <a href="{{ url_for('ventas.nueva') }}" class="atajo"><span aria-hidden="true">💰</span>Venta</a>
-    <a href="{{ url_for('trabajadores.nuevo_registro') }}" class="atajo"><span aria-hidden="true">👷</span>Jornal</a>
-    <a href="{{ url_for('gastos.nuevo') }}" class="atajo"><span aria-hidden="true">🧾</span>Gasto</a>
+    <a href="{{ url_for('produccion_cafe.nueva_produccion') }}" class="atajo cafe">
+        <span class="atajo-icon"><i data-lucide="coffee"></i></span>Café
+    </a>
+    <a href="{{ url_for('produccion_platano.nueva_produccion') }}" class="atajo platano">
+        <span class="atajo-icon"><i data-lucide="banana"></i></span>Cortada
+    </a>
+    <a href="{{ url_for('produccion_platano.nuevo_embolsado') }}" class="atajo platano">
+        <span class="atajo-icon"><i data-lucide="shopping-bag"></i></span>Embolsado
+    </a>
+    <a href="{{ url_for('ventas.nueva') }}" class="atajo">
+        <span class="atajo-icon"><i data-lucide="wallet"></i></span>Venta
+    </a>
+    <a href="{{ url_for('trabajadores.nuevo_registro') }}" class="atajo">
+        <span class="atajo-icon"><i data-lucide="hard-hat"></i></span>Jornal
+    </a>
+    <a href="{{ url_for('gastos.nuevo') }}" class="atajo">
+        <span class="atajo-icon"><i data-lucide="receipt"></i></span>Gasto
+    </a>
 </div>
 
 {% endblock %}

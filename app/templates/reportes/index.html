@@ -35,7 +35,7 @@ $ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
             href="{{ url_for('reportes.exportar_excel', anio=anio, mes=mes or '') }}"
             class="btn btn-success"
         >
-            <i class="bi bi-file-earmark-excel"></i>
+            <i data-lucide="file-spreadsheet" class="icon"></i>
             Exportar Excel
         </a>
     </div>
@@ -73,7 +73,7 @@ $ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
 
                 <div class="col-12 col-md-4 d-flex gap-2">
                     <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-search"></i>
+                        <i data-lucide="search" class="icon"></i>
                         Consultar
                     </button>
 
@@ -95,7 +95,7 @@ $ {{ "{:,.0f}".format(valor or 0).replace(",", ".") }}
         <div class="col-12 col-md-3">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <small class="text-muted">☕ Café en pergamino seco</small>
+                    <small class="text-muted"><i data-lucide="coffee" class="icon"></i> Café en pergamino seco</small>
                     <h3 class="mb-0">{{ numero(resumen.total_cafe_arrobas) }} @</h3>
                     <small>{{ numero(resumen.total_cafe_pergamino_kg) }} kg equivalentes</small>
                 </div>

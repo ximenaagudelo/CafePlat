@@ -12,13 +12,16 @@
 {% set hay_filtros = filtros.categoria or filtros.tipo or filtros.fecha_inicio or filtros.fecha_fin %}
 
 <div class="page-intro">
-    <div>
-        <h2>🧾 Gastos e insumos</h2>
+    <div class="page-intro-texto">
+        <span class="stat-icon mb-0"><i data-lucide="receipt"></i></span>
+        <div>
+        <h2>Gastos e insumos</h2>
         <p>Abonos, herramientas, transporte y demás costos de la finca.</p>
+        </div>
     </div>
     <div class="acciones d-none d-md-flex">
         <a href="{{ url_for('gastos.nuevo') }}" class="btn btn-success">
-            <i class="bi bi-plus-lg"></i> Nuevo gasto
+            <i data-lucide="plus" class="icon"></i> Nuevo gasto
         </a>
     </div>
 </div>
@@ -26,7 +29,7 @@
 <div class="row g-3 mb-4">
     <div class="col-12 col-xl-4">
         <div class="stat-card cafe">
-            <span class="emoji" aria-hidden="true">🧾</span>
+            <span class="stat-icon"><i data-lucide="receipt"></i></span>
             <h6>Total gastado</h6>
             <h3>{{ pesos(total_general) }}</h3>
             <small>{{ total_registros }} registros{% if hay_filtros %} con filtros{% endif %}</small>
@@ -34,7 +37,7 @@
     </div>
     <div class="col-6 col-xl-4">
         <div class="stat-card verde">
-            <span class="emoji" aria-hidden="true">🌱</span>
+            <span class="stat-icon"><i data-lucide="sprout"></i></span>
             <h6>Insumos agrícolas</h6>
             <h3>{{ pesos(total_insumos) }}</h3>
             <small>Abonos y fumigación</small>
@@ -42,7 +45,7 @@
     </div>
     <div class="col-6 col-xl-4">
         <div class="stat-card pergamino">
-            <span class="emoji" aria-hidden="true">👷</span>
+            <span class="stat-icon"><i data-lucide="hard-hat"></i></span>
             <h6>Mano de obra</h6>
             <h3>{{ pesos(total_mano_obra) }}</h3>
             <small>Registrada como gasto</small>
@@ -52,7 +55,7 @@
 
 <details class="filtros" {% if hay_filtros %}open{% endif %}>
     <summary>
-        <i class="bi bi-funnel"></i> Filtrar
+        <i data-lucide="filter" class="icon"></i> Filtrar
         {% if hay_filtros %}<span class="activo">· filtros aplicados</span>{% endif %}
     </summary>
     <form method="get" class="row g-3 align-items-end">
@@ -122,13 +125,13 @@
 
                     <div class="record-actions">
                         <a href="{{ url_for('gastos.editar', gasto_id=gasto.id) }}" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-pencil"></i> Editar
+                            <i data-lucide="pencil" class="icon"></i> Editar
                         </a>
                         <form method="post"
                               action="{{ url_for('gastos.eliminar', gasto_id=gasto.id) }}"
                               onsubmit="return confirm('¿Eliminar este gasto o insumo?');">
                             <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash3"></i> Eliminar
+                                <i data-lucide="trash-2" class="icon"></i> Eliminar
                             </button>
                         </form>
                     </div>
@@ -137,7 +140,7 @@
         </div>
     {% else %}
         <div class="empty-state">
-            <span class="emoji" aria-hidden="true">🧾</span>
+            <span class="stat-icon"><i data-lucide="receipt"></i></span>
             {% if hay_filtros %}No hay gastos con esos filtros.{% else %}Todavía no hay gastos registrados.{% endif %}
         </div>
     {% endif %}
@@ -145,7 +148,7 @@
 
 <div class="form-actions d-md-none">
     <a href="{{ url_for('gastos.nuevo') }}" class="btn btn-success">
-        <i class="bi bi-plus-lg"></i> Nuevo gasto
+        <i data-lucide="plus" class="icon"></i> Nuevo gasto
     </a>
 </div>
 

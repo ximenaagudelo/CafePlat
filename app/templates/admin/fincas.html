@@ -5,7 +5,7 @@
 
 {% block page_actions %}
 <a href="{{ url_for('admin.nueva_finca') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1 shadow-sm">
-    <i class="bi bi-plus-lg"></i>
+    <i data-lucide="plus" class="icon"></i>
     <span>Nueva Finca</span>
 </a>
 {% endblock %}
@@ -16,7 +16,7 @@
         <div class="card border-0 shadow-sm rounded-3">
             <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0 fw-bold">
-                    <i class="bi bi-buildings me-2 text-primary"></i>Listado de Fincas
+                    <i data-lucide="building-2" class="icon text-primary"></i>Listado de Fincas
                 </h5>
                 <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
                     {{ fincas|length }} {% if fincas|length == 1 %}finca{% else %}fincas{% endif %}
@@ -48,7 +48,7 @@
                                         {% else %}
                                             <div class="rounded-circle bg-light border d-inline-flex align-items-center justify-content-center text-muted"
                                                  style="width: 42px; height: 42px;">
-                                                <i class="bi bi-tree-fill fs-5"></i>
+                                                <i data-lucide="trees" class="icon fs-5"></i>
                                             </div>
                                         {% endif %}
                                     </td>
@@ -70,13 +70,13 @@
                                         <a href="{{ url_for('admin.editar_finca', id=finca.id) }}"
                                            class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                                            title="Editar Finca">
-                                            <i class="bi bi-pencil-square"></i>
+                                            <i data-lucide="square-pen" class="icon"></i>
                                             <span>Editar</span>
                                         </a>
                                         <a href="{{ url_for('admin.nuevo_usuario', finca_id=finca.id) }}"
                                            class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1 mt-1"
                                            aria-label="Crear usuario para {{ finca.nombre }}">
-                                            <i class="bi bi-person-plus" aria-hidden="true"></i>
+                                            <i data-lucide="user-plus" class="icon" aria-hidden="true"></i>
                                             <span>Crear Usuario</span>
                                         </a>
                                     </td>
@@ -87,11 +87,11 @@
                     </div>
                 {% else %}
                     <div class="text-center py-5 text-muted">
-                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        <i data-lucide="inbox" class="icon fs-1 d-block mb-2"></i>
                         <h6 class="fw-bold">No hay fincas registradas</h6>
                         <p class="small text-muted mb-3">Comienza registrando una nueva finca en el sistema.</p>
                         <a href="{{ url_for('admin.nueva_finca') }}" class="btn btn-primary btn-sm">
-                            <i class="bi bi-plus-lg me-1"></i>Crear primera finca
+                            <i data-lucide="plus" class="icon"></i>Crear primera finca
                         </a>
                     </div>
                 {% endif %}

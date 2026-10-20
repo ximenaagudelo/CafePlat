@@ -12,16 +12,19 @@
 {% set hay_filtros = filtros.trabajador_id or filtros.fecha_inicio or filtros.fecha_fin or filtros.estado_pago %}
 
 <div class="page-intro">
-    <div>
-        <h2>👷 Trabajadores y pagos</h2>
+    <div class="page-intro-texto">
+        <span class="stat-icon mb-0"><i data-lucide="hard-hat"></i></span>
+        <div>
+        <h2>Trabajadores y pagos</h2>
         <p>Jornales, kilos de café cereza cogidos y lo que falta por pagar.</p>
+        </div>
     </div>
     <div class="acciones d-none d-md-flex">
-        <a href="{{ url_for('trabajadores.nuevo') }}" class="btn btn-outline-light">
-            <i class="bi bi-person-plus"></i> Trabajador
+        <a href="{{ url_for('trabajadores.nuevo') }}" class="btn btn-outline-secondary">
+            <i data-lucide="user-plus" class="icon"></i> Trabajador
         </a>
         <a href="{{ url_for('trabajadores.nuevo_registro') }}" class="btn btn-success">
-            <i class="bi bi-plus-lg"></i> Registrar jornal
+            <i data-lucide="plus" class="icon"></i> Registrar jornal
         </a>
     </div>
 </div>
@@ -29,7 +32,7 @@
 <div class="row g-3 mb-4">
     <div class="col-6 col-xl-3">
         <div class="stat-card platano">
-            <span class="emoji" aria-hidden="true">⏳</span>
+            <span class="stat-icon"><i data-lucide="hourglass"></i></span>
             <h6>Por pagar</h6>
             <h3>{{ pesos(total_pendiente) }}</h3>
             <small>Pendiente</small>
@@ -37,7 +40,7 @@
     </div>
     <div class="col-6 col-xl-3">
         <div class="stat-card verde">
-            <span class="emoji" aria-hidden="true">✅</span>
+            <span class="stat-icon"><i data-lucide="circle-check"></i></span>
             <h6>Pagado</h6>
             <h3>{{ pesos(total_pagado) }}</h3>
             <small>Ya entregado</small>
@@ -45,7 +48,7 @@
     </div>
     <div class="col-6 col-xl-3">
         <div class="stat-card pergamino">
-            <span class="emoji" aria-hidden="true">💵</span>
+            <span class="stat-icon"><i data-lucide="banknote"></i></span>
             <h6>Total jornales</h6>
             <h3>{{ pesos(total_general) }}</h3>
             <small>Pagado + pendiente</small>
@@ -53,7 +56,7 @@
     </div>
     <div class="col-6 col-xl-3">
         <div class="stat-card cafe">
-            <span class="emoji" aria-hidden="true">🍒</span>
+            <span class="stat-icon"><i data-lucide="cherry"></i></span>
             <h6>Café cogido</h6>
             <h3>{{ "{:,.1f}".format(total_kilos_cafe|float).replace(",", "X").replace(".", ",").replace("X", ".") }} kg</h3>
             <small>{{ "{:,.2f}".format((total_kilos_cafe|float) / 60).replace(",", "X").replace(".", ",").replace("X", ".") }} @ de cereza</small>
@@ -74,13 +77,13 @@
                 <a href="{{ url_for('trabajadores.editar', trabajador_id=trabajador.id) }}"
                    class="btn btn-sm {{ 'btn-outline-success' if trabajador.estado == 'activo' else 'btn-outline-secondary' }}"
                    title="Editar trabajador">
-                    {{ '🧑‍🌾' if trabajador.estado == 'activo' else '💤' }} {{ trabajador.nombre }}
+                    <i data-lucide="{{ 'user' if trabajador.estado == 'activo' else 'user-x' }}" class="icon"></i> {{ trabajador.nombre }}
                 </a>
             {% endfor %}
         </div>
     {% else %}
         <div class="empty-state">
-            <span class="emoji" aria-hidden="true">🧑‍🌾</span>
+            <span class="stat-icon"><i data-lucide="user"></i></span>
             No hay trabajadores registrados.
         </div>
     {% endif %}
@@ -88,7 +91,7 @@
 
 <details class="filtros" {% if hay_filtros %}open{% endif %}>
     <summary>
-        <i class="bi bi-funnel"></i> Filtrar jornales
+        <i data-lucide="filter" class="icon"></i> Filtrar jornales
         {% if hay_filtros %}<span class="activo">· filtros aplicados</span>{% endif %}
     </summary>
     <form method="GET" class="row g-3 align-items-end">
@@ -175,12 +178,12 @@
                     <div class="record-actions">
                         <form action="{{ url_for('trabajadores.cambiar_pago', registro_id=registro.id) }}" method="POST">
                             <button type="submit" class="btn btn-sm {{ 'btn-outline-secondary' if registro.pagado else 'btn-success' }}">
-                                {% if registro.pagado %}Marcar pendiente{% else %}<i class="bi bi-cash-coin"></i> Pagar{% endif %}
+                                {% if registro.pagado %}Marcar pendiente{% else %}<i data-lucide="hand-coins" class="icon"></i> Pagar{% endif %}
                             </button>
                         </form>
                         <a href="{{ url_for('trabajadores.editar_registro', registro_id=registro.id) }}"
                            class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-pencil"></i> Editar
+                            <i data-lucide="pencil" class="icon"></i> Editar
                         </a>
                     </div>
                     <form action="{{ url_for('trabajadores.eliminar_registro', registro_id=registro.id) }}"
@@ -188,7 +191,7 @@
                           class="mt-2"
                           onsubmit="return confirm('¿Seguro que deseas eliminar este registro de trabajo? Esta acción no se puede deshacer.');">
                         <button type="submit" class="btn btn-sm btn-link text-danger w-100">
-                            <i class="bi bi-trash3"></i> Eliminar
+                            <i data-lucide="trash-2" class="icon"></i> Eliminar
                         </button>
                     </form>
                 </article>
@@ -196,18 +199,18 @@
         </div>
     {% else %}
         <div class="empty-state">
-            <span class="emoji" aria-hidden="true">📋</span>
+            <span class="stat-icon"><i data-lucide="clipboard-list"></i></span>
             No hay jornales registrados{% if hay_filtros %} con esos filtros{% endif %}.
         </div>
     {% endif %}
 </section>
 
 <div class="form-actions d-md-none">
-    <a href="{{ url_for('trabajadores.nuevo') }}" class="btn btn-outline-light">
-        <i class="bi bi-person-plus"></i> Trabajador
+    <a href="{{ url_for('trabajadores.nuevo') }}" class="btn btn-outline-secondary">
+        <i data-lucide="user-plus" class="icon"></i> Trabajador
     </a>
     <a href="{{ url_for('trabajadores.nuevo_registro') }}" class="btn btn-success">
-        <i class="bi bi-plus-lg"></i> Jornal
+        <i data-lucide="plus" class="icon"></i> Jornal
     </a>
 </div>
 
