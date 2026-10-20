@@ -1136,24 +1136,32 @@ body.ia-abierta .ia-fab { display: none; }
 /* =========================================================
    Inicio de sesión
    ========================================================= */
-.login-page { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-rows: 220px 1fr; background: var(--fondo); }
-@media (min-width: 992px) { .login-page { grid-template-columns: 1.1fr 1fr; grid-template-rows: none; } }
-
-.login-foto { position: relative; min-height: 220px; overflow: hidden; background: var(--verde-bosque); }
-.login-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.login-foto::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(28, 52, 38, 0.1) 30%, rgba(28, 52, 38, 0.82) 100%);
+.login-page {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 32px 16px;
+    background: var(--fondo);
+    overflow: hidden;
 }
-.login-foto-texto { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; padding: 24px; color: #FFFFFF; }
-.login-foto-texto h1 { margin: 0; color: #FFFFFF; font-family: var(--fuente-titulos); font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 600; line-height: 1.1; }
-.login-foto-texto p { margin: 8px 0 0; color: #E6EEE3; max-width: 44ch; }
-@media (max-width: 991.98px) { .login-foto-texto p { display: none; } }
 
-.login-lado { display: grid; place-items: start center; padding: 24px 16px 40px; }
-@media (min-width: 992px) { .login-lado { place-items: center; } }
+/* Decoración discreta detrás de la ventana */
+.login-deco { position: absolute; inset: 0; pointer-events: none; }
+.login-mancha { position: absolute; border-radius: 50%; }
+.login-mancha.verde { width: 520px; height: 520px; top: -220px; right: -160px; background: var(--verde-suave); }
+.login-mancha.dorada { width: 420px; height: 420px; bottom: -200px; left: -140px; background: var(--dorado-suave); }
+.login-rama-cafe { position: absolute; top: 4%; left: 3%; width: 260px; opacity: 0.55; }
+.login-hoja-platano { position: absolute; bottom: 5%; right: 3%; width: 320px; opacity: 0.75; }
+@media (max-width: 767.98px) {
+    .login-mancha.verde { width: 320px; height: 320px; top: -160px; right: -120px; }
+    .login-mancha.dorada { width: 280px; height: 280px; bottom: -150px; left: -110px; }
+    .login-rama-cafe { width: 150px; top: 8px; left: -12px; opacity: 0.4; }
+    .login-hoja-platano { width: 190px; bottom: 8px; right: -24px; opacity: 0.55; }
+}
+
+.login-lado { position: relative; z-index: 1; width: 100%; display: grid; place-items: center; }
 .login-card {
     width: 100%;
     max-width: 400px;

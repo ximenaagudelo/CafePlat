@@ -19,14 +19,45 @@
 
 <div class="login-page">
 
-    <!-- Café y plátano en la misma ladera -->
-    <div class="login-foto">
-        <img src="{{ url_for('static', filename='img/fotos/finca-cafe-platano.jpg') }}"
-             alt="Cafetal sembrado en surcos junto a matas de plátano en una ladera de Colombia">
-        <div class="login-foto-texto">
-            <h1>Café y plátano,<br>bien llevados.</h1>
-            <p>Cosechas, cortadas, ventas y jornales de tu finca en un solo lugar.</p>
-        </div>
+    <!-- Decoración: formas suaves y dibujos de línea de café y plátano -->
+    <div class="login-deco" aria-hidden="true">
+        <span class="login-mancha verde"></span>
+        <span class="login-mancha dorada"></span>
+
+        <!-- Rama de café -->
+        <svg class="login-rama-cafe" viewBox="0 0 260 220" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 200 C70 160 120 110 240 20" stroke="#6F9270" stroke-width="2.5"/>
+            <g stroke="#6F9270" stroke-width="2">
+                <path d="M62 163 C40 138 44 112 66 100 C80 124 78 146 62 163 Z"/>
+                <path d="M62 163 C58 140 62 120 66 100"/>
+                <path d="M74 154 C102 160 122 148 128 126 C102 122 84 134 74 154 Z"/>
+                <path d="M74 154 C94 144 112 134 128 126"/>
+                <path d="M128 112 C110 86 116 62 138 52 C150 78 146 98 128 112 Z"/>
+                <path d="M128 112 C126 90 130 70 138 52"/>
+                <path d="M140 102 C166 104 184 90 188 68 C164 66 148 80 140 102 Z"/>
+                <path d="M140 102 C158 90 174 80 188 68"/>
+                <path d="M196 56 C186 34 194 16 212 10 C220 32 214 48 196 56 Z"/>
+            </g>
+            <g stroke="#79543A" stroke-width="2">
+                <circle cx="96" cy="128" r="7"/>
+                <circle cx="108" cy="120" r="7"/>
+                <circle cx="100" cy="114" r="6"/>
+                <circle cx="166" cy="74" r="6.5"/>
+                <circle cx="176" cy="66" r="6"/>
+            </g>
+        </svg>
+
+        <!-- Hoja de plátano -->
+        <svg class="login-hoja-platano" viewBox="0 0 320 180" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 150 C80 60 210 20 310 30 C240 100 130 160 10 150 Z" stroke="#D9B66F" stroke-width="2.5"/>
+            <path d="M10 150 C110 110 210 60 310 30" stroke="#D9B66F" stroke-width="2"/>
+            <g stroke="#D9B66F" stroke-width="1.5">
+                <path d="M60 129 L52 104"/><path d="M95 114 L86 84"/><path d="M130 99 L124 68"/>
+                <path d="M165 84 L162 54"/><path d="M200 69 L200 42"/><path d="M235 55 L238 34"/>
+                <path d="M60 129 L76 146"/><path d="M95 114 L114 138"/><path d="M130 99 L152 126"/>
+                <path d="M165 84 L188 110"/><path d="M200 69 L222 92"/><path d="M235 55 L254 72"/>
+            </g>
+        </svg>
     </div>
 
     <div class="login-lado">
