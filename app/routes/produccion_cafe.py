@@ -8,6 +8,7 @@ from sqlalchemy import func
 
 from app.extensions import db
 from app.models import ProduccionCafe, FlorecidaCafe
+from app.services import cafe as conversion_cafe
 
 
 produccion_cafe_bp = Blueprint(
@@ -168,12 +169,6 @@ def index():
         fecha_fin_obj = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
         producciones_query = producciones_query.filter(ProduccionCafe.fecha <= fecha_fin_obj)
 
-    total_kilos = (
-        producciones_query
-        .with_entities(func.coalesce(func.sum(ProduccionCafe.kilos_totales), 0))
-        .scalar()
-    )
-
     total_cerezo = (
         producciones_query
         .with_entities(func.coalesce(func.sum(ProduccionCafe.kilos_totales), 0))
@@ -188,8 +183,7 @@ def index():
         .scalar()
     )
 
-    total_arrobas = Decimal(total_kilos or 0) / Decimal("12")
-    total_cargas = Decimal(total_kilos or 0) / Decimal("120")
+    resumen = conversion_cafe.resumen_cafe(total_cerezo, total_pergamino)
 
     producciones = (
         producciones_query
@@ -218,11 +212,7 @@ def index():
         finca_activa=finca_activa,
         producciones=producciones,
         florecidas_estimadas=florecidas_estimadas,
-        total_kilos=total_kilos,
-        total_cerezo=total_cerezo,
-        total_pergamino=total_pergamino,
-        total_arrobas=total_arrobas,
-        total_cargas=total_cargas,
+        resumen=resumen,
         filtros=filtros
     )
 

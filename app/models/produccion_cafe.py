@@ -1,7 +1,7 @@
 from datetime import datetime, date
-from decimal import Decimal
 
 from app.extensions import db
+from app.services import cafe as conversion_cafe
 
 
 class ProduccionCafe(db.Model):
@@ -44,17 +44,17 @@ class ProduccionCafe(db.Model):
 
     @property
     def arrobas(self):
-        if self.kilos_totales is None:
-            return Decimal("0")
-
-        return Decimal(self.kilos_totales) / Decimal("12")
+        """Arroba de 60 kg en cereza o de 12,5 kg en pergamino."""
+        return conversion_cafe.arrobas(self.kilos_totales, self.tipo_cafe)
 
     @property
     def cargas(self):
-        if self.kilos_totales is None:
-            return Decimal("0")
+        return conversion_cafe.cargas(self.kilos_totales, self.tipo_cafe)
 
-        return Decimal(self.kilos_totales) / Decimal("120")
+    @property
+    def kilos_pergamino(self):
+        """Kilos equivalentes en pergamino seco (60 kg cereza = 12,5 kg)."""
+        return conversion_cafe.kilos_a_pergamino(self.kilos_totales, self.tipo_cafe)
 
 
 class FlorecidaCafe(db.Model):

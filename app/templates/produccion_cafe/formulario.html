@@ -55,11 +55,11 @@
                             <option value="">Seleccionar</option>
                             <option value="cerezo"
                                 {% if produccion and produccion.tipo_cafe == "cerezo" %}selected{% endif %}>
-                                Café Cerezo
+                                Café cereza 🍒 (recién cogido)
                             </option>
                             <option value="pergamino"
                                 {% if produccion and produccion.tipo_cafe == "pergamino" %}selected{% endif %}>
-                                Café Pergamino
+                                Café pergamino seco 🫘
                             </option>
                         </select>
                     </div>
@@ -78,39 +78,27 @@
                     </div>
                 </div>
 
-                <div class="row g-3 mt-3">
-                    <div class="col-12 col-md-4">
-                        <div class="card border-0 bg-light h-100">
-                            <div class="card-body">
-                                <span class="text-muted small d-block">Total kilogramos</span>
-                                <strong id="totalKilos">0,00 kg</strong>
-                            </div>
-                        </div>
+                <div class="conversion-box mt-4" aria-live="polite">
+                    <div>
+                        <span class="kicker">Arrobas</span>
+                        <strong id="totalArrobas">0,00</strong>
+                        <small class="text-muted" id="tipoArroba">Elige el tipo de café</small>
                     </div>
-
-                    <div class="col-12 col-md-4">
-                        <div class="card border-0 bg-light h-100">
-                            <div class="card-body">
-                                <span class="text-muted small d-block">Arrobas</span>
-                                <strong id="totalArrobas">0,00</strong>
-                            </div>
-                        </div>
+                    <div class="destacado">
+                        <span class="kicker">En pergamino seco</span>
+                        <strong id="totalPergamino">0,00 kg</strong>
+                        <small class="text-muted">60 kg cereza = 12,5 kg</small>
                     </div>
-
-                    <div class="col-12 col-md-4">
-                        <div class="card border-0 bg-light h-100">
-                            <div class="card-body">
-                                <span class="text-muted small d-block">Cargas</span>
-                                <strong id="totalCargas">0,00</strong>
-                            </div>
-                        </div>
+                    <div>
+                        <span class="kicker">Cargas</span>
+                        <strong id="totalCargas">0,00</strong>
+                        <small class="text-muted">10 @ por carga</small>
                     </div>
                 </div>
 
-                <div class="alert alert-success mt-4 mb-0">
-                    <i class="bi bi-info-circle-fill me-1"></i>
-                    La producción se registra independiente de los trabajadores. Para medir productividad individual, registra los kilos de café cerezo en los jornales del módulo Trabajadores.
-                </div>
+                <p class="small text-muted mt-3 mb-0">
+                    🌱 Para medir lo que coge cada trabajador, registra los kilos de cereza en sus jornales (Trabajadores).
+                </p>
 
                 <div class="mt-4">
                     <label for="observaciones" class="form-label">Observaciones</label>
@@ -121,7 +109,7 @@
                               placeholder="Notas adicionales sobre la producción, beneficio, secado, lote o calidad">{{ produccion.observaciones if produccion and produccion.observaciones else '' }}</textarea>
                 </div>
 
-                <div class="d-grid d-md-flex justify-content-md-end gap-2 mt-4">
+                <div class="form-actions d-grid d-md-flex justify-content-md-end gap-2 mt-4">
                     <a href="{{ url_for('produccion_cafe.index') }}" class="btn btn-outline-secondary">
                         Cancelar
                     </a>
@@ -138,33 +126,45 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const kilosInput = document.getElementById("kilos_totales");
-    const totalKilos = document.getElementById("totalKilos");
-    const totalArrobas = document.getElementById("totalArrobas");
-    const totalCargas = document.getElementById("totalCargas");
+    // Cereza: arroba de 60 kg. Pergamino: arroba de 12,5 kg. 60 kg cereza = 12,5 kg pergamino.
+    const KG_ARROBA = { cerezo: 60, pergamino: 12.5 };
 
-    function truncar(numero, decimales = 2) {
-        const factor = Math.pow(10, decimales);
-        return Math.floor(numero * factor) / factor;
-    }
+    const kilosInput = document.getElementById("kilos_totales");
+    const tipoSelect = document.getElementById("tipo_cafe");
+    const totalArrobas = document.getElementById("totalArrobas");
+    const totalPergamino = document.getElementById("totalPergamino");
+    const totalCargas = document.getElementById("totalCargas");
+    const tipoArroba = document.getElementById("tipoArroba");
 
     function formato(numero) {
-        return truncar(numero, 2).toLocaleString("es-CO", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
+        const truncado = Math.floor(numero * 100) / 100;
+        return truncado.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    function calcularTotales() {
+    function calcular() {
         const kilos = parseFloat(kilosInput.value) || 0;
+        const tipo = tipoSelect.value;
 
-        totalKilos.textContent = formato(kilos) + " kg";
-        totalArrobas.textContent = formato(kilos / 12);
-        totalCargas.textContent = formato(kilos / 120);
+        if (!KG_ARROBA[tipo]) {
+            totalArrobas.textContent = "0,00";
+            totalPergamino.textContent = "0,00 kg";
+            totalCargas.textContent = "0,00";
+            tipoArroba.textContent = "Elige el tipo de café";
+            return;
+        }
+
+        const pergamino = tipo === "cerezo" ? kilos * 12.5 / 60 : kilos;
+        const arrobas = kilos / KG_ARROBA[tipo];
+
+        totalArrobas.textContent = formato(arrobas);
+        totalPergamino.textContent = formato(pergamino) + " kg";
+        totalCargas.textContent = formato(arrobas / 10);
+        tipoArroba.textContent = tipo === "cerezo" ? "de 60 kg (cereza)" : "de 12,5 kg (pergamino)";
     }
 
-    kilosInput.addEventListener("input", calcularTotales);
-    calcularTotales();
+    kilosInput.addEventListener("input", calcular);
+    tipoSelect.addEventListener("change", calcular);
+    calcular();
 });
 </script>
 

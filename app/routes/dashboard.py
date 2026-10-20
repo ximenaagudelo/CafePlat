@@ -13,6 +13,8 @@ from app.models import (
     Gasto,
     Venta
 )
+from app.services import cafe as conversion_cafe
+from app.services.alertas import proximas_cortadas, proximas_cosechas_cafe
 
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -148,10 +150,9 @@ def index():
         ProduccionCafe.kilos_totales
     )
 
-    produccion_cafe_arrobas = (
-        produccion_cafe_total / Decimal("12")
-        if produccion_cafe_total > 0
-        else Decimal("0")
+    resumen_cafe = conversion_cafe.resumen_cafe(
+        produccion_cafe_cerezo,
+        produccion_cafe_pergamino
     )
 
     # =========================
@@ -296,11 +297,7 @@ def index():
         Venta.kilos
     )
 
-    arrobas_cafe_vendidas = (
-        kilos_cafe_vendidos / Decimal("12")
-        if kilos_cafe_vendidos > 0
-        else Decimal("0")
-    )
+    arrobas_cafe_vendidas = kilos_cafe_vendidos / conversion_cafe.KG_ARROBA_PERGAMINO
 
     ultimas_ventas = (
         Venta.query
@@ -319,6 +316,7 @@ def index():
     return render_template(
         "dashboard/index.html",
         finca_activa=finca_activa,
+        hoy=hoy,
 
         total_trabajadores=total_trabajadores,
         total_trabajos_realizados=total_trabajos_realizados,
@@ -334,7 +332,9 @@ def index():
         produccion_cafe_total=produccion_cafe_total,
         produccion_cafe_cerezo=produccion_cafe_cerezo,
         produccion_cafe_pergamino=produccion_cafe_pergamino,
-        produccion_cafe_arrobas=produccion_cafe_arrobas,
+        resumen_cafe=resumen_cafe,
+        cortadas=proximas_cortadas(finca_id, limite=4),
+        cosechas_cafe=proximas_cosechas_cafe(finca_id),
 
         produccion_platano_kilos=produccion_platano_kilos,
         produccion_platano_racimos=produccion_platano_racimos,

@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- Hoja de plátano: larga, con nervadura central y venas diagonales -->
+    <g id="hoja-platano">
+      <path d="M0 0 C70 -70 300 -95 520 -12 C300 50 80 60 0 0 Z" fill="#21492e"/>
+      <path d="M0 0 C140 -22 330 -26 520 -12" fill="none" stroke="#356a40" stroke-width="3"/>
+      <g stroke="#2b5737" stroke-width="1.6" fill="none">
+        <path d="M60 -10 L90 -52"/><path d="M110 -15 L145 -66"/><path d="M160 -18 L198 -74"/>
+        <path d="M210 -20 L250 -76"/><path d="M260 -21 L300 -74"/><path d="M310 -21 L350 -68"/>
+        <path d="M360 -19 L398 -58"/><path d="M410 -17 L444 -44"/>
+        <path d="M60 -8 L84 32"/><path d="M110 -12 L138 40"/><path d="M160 -15 L190 44"/>
+        <path d="M210 -17 L240 44"/><path d="M260 -18 L290 40"/><path d="M310 -18 L338 32"/>
+        <path d="M360 -17 L386 22"/><path d="M410 -15 L432 10"/>
+      </g>
+    </g>
+
+    <!-- Hoja de café: pequeña, brillante y puntiaguda -->
+    <g id="hoja-cafe">
+      <path d="M0 0 C22 -26 74 -28 106 0 C74 26 22 26 0 0 Z" fill="#285634"/>
+      <path d="M0 0 L104 0" stroke="#376e43" stroke-width="1.6"/>
+    </g>
+
+    <!-- Cereza de café madura -->
+    <g id="cereza">
+      <circle r="8" fill="#8e3023"/>
+      <circle cx="-2.6" cy="-2.6" r="2.4" fill="#b2493a"/>
+    </g>
+
+    <radialGradient id="luz" cx="78%" cy="8%" r="70%">
+      <stop offset="0" stop-color="#2a4a2f" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#0d1510" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1440" height="900" fill="url(#luz)"/>
+
+  <!-- Montañas cafeteras al fondo -->
+  <path d="M0 720 C160 640 300 660 430 700 C560 610 720 600 860 680 C990 620 1150 600 1280 660 C1350 640 1400 650 1440 660 L1440 900 L0 900 Z" fill="#14261b"/>
+  <path d="M0 790 C200 730 360 760 520 780 C700 720 880 730 1040 770 C1200 730 1330 740 1440 760 L1440 900 L0 900 Z" fill="#182d20"/>
+  <!-- Surcos de cultivo -->
+  <g stroke="#1b3022" stroke-width="2" fill="none" opacity=".9">
+    <path d="M560 790 C700 760 860 765 1020 800"/>
+    <path d="M540 815 C700 785 870 790 1050 828"/>
+    <path d="M520 842 C690 812 880 818 1080 858"/>
+  </g>
+
+  <!-- Mata de plátano, esquina superior derecha -->
+  <g opacity=".95">
+    <use href="#hoja-platano" transform="translate(1460 -40) rotate(145) scale(1.15)"/>
+    <use href="#hoja-platano" transform="translate(1480 120) rotate(168) scale(1.05)"/>
+    <use href="#hoja-platano" transform="translate(1450 260) rotate(196) scale(.9)"/>
+    <use href="#hoja-platano" transform="translate(1300 -60) rotate(112) scale(.85)"/>
+  </g>
+
+  <!-- Mata de plátano, esquina inferior izquierda -->
+  <g opacity=".9">
+    <use href="#hoja-platano" transform="translate(-40 960) rotate(-40) scale(1.1)"/>
+    <use href="#hoja-platano" transform="translate(-60 820) rotate(-14) scale(.95)"/>
+    <use href="#hoja-platano" transform="translate(60 990) rotate(-68) scale(.85)"/>
+  </g>
+
+  <!-- Rama de café con cerezas, arriba a la izquierda -->
+  <g transform="translate(-20 90) rotate(12)">
+    <path d="M0 0 C120 10 240 30 380 80" fill="none" stroke="#3a2a1c" stroke-width="5" stroke-linecap="round"/>
+    <use href="#hoja-cafe" transform="translate(60 4) rotate(-40)"/>
+    <use href="#hoja-cafe" transform="translate(60 4) rotate(38)"/>
+    <use href="#hoja-cafe" transform="translate(160 18) rotate(-34)"/>
+    <use href="#hoja-cafe" transform="translate(160 18) rotate(42)"/>
+    <use href="#hoja-cafe" transform="translate(262 40) rotate(-26)"/>
+    <use href="#hoja-cafe" transform="translate(262 40) rotate(48)"/>
+    <use href="#hoja-cafe" transform="translate(372 78) rotate(14) scale(.8)"/>
+    <use href="#cereza" transform="translate(98 14)"/>
+    <use href="#cereza" transform="translate(110 4)"/>
+    <use href="#cereza" transform="translate(112 22)"/>
+    <use href="#cereza" transform="translate(206 30)"/>
+    <use href="#cereza" transform="translate(220 22)"/>
+    <use href="#cereza" transform="translate(218 40)"/>
+    <use href="#cereza" transform="translate(312 58)"/>
+    <use href="#cereza" transform="translate(324 52)"/>
+  </g>
+
+  <!-- Rama de café, abajo a la derecha -->
+  <g transform="translate(1460 740) rotate(196)">
+    <path d="M0 0 C110 10 220 26 330 64" fill="none" stroke="#3a2a1c" stroke-width="5" stroke-linecap="round"/>
+    <use href="#hoja-cafe" transform="translate(70 6) rotate(-38)"/>
+    <use href="#hoja-cafe" transform="translate(70 6) rotate(40)"/>
+    <use href="#hoja-cafe" transform="translate(180 24) rotate(-30)"/>
+    <use href="#hoja-cafe" transform="translate(180 24) rotate(46)"/>
+    <use href="#hoja-cafe" transform="translate(320 60) rotate(16) scale(.8)"/>
+    <use href="#cereza" transform="translate(118 16)"/>
+    <use href="#cereza" transform="translate(130 8)"/>
+    <use href="#cereza" transform="translate(132 26)"/>
+    <use href="#cereza" transform="translate(236 40)"/>
+    <use href="#cereza" transform="translate(248 32)"/>
+  </g>
+
+</svg>

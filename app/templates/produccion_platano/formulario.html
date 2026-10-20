@@ -128,7 +128,7 @@
                               placeholder="Notas sobre corte, calidad, destino o estado del cultivo">{{ produccion.observaciones if produccion and produccion.observaciones else '' }}</textarea>
                 </div>
 
-                <div class="d-grid d-md-flex justify-content-md-end gap-2 mt-4">
+                <div class="form-actions d-grid d-md-flex justify-content-md-end gap-2 mt-4">
                     <a href="{{ url_for('produccion_platano.index') }}" class="btn btn-outline-secondary">
                         Cancelar
                     </a>

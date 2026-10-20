@@ -1,374 +1,177 @@
 {% extends "base.html" %}
 
 {% block title %}Ventas · CaféPlat{% endblock %}
-
 {% block page_title %}Ventas{% endblock %}
+
+{% macro pesos(valor) -%}
+    $ {{ "{:,.0f}".format(valor|default(0, true)|float).replace(",", ".") }}
+{%- endmacro %}
+
+{% macro numero(valor) -%}
+    {{ "{:,.2f}".format(valor|default(0, true)|float).replace(",", "X").replace(".", ",").replace("X", ".") }}
+{%- endmacro %}
 
 {% block content %}
 
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+{% set hay_filtros = filtros.producto or filtros.tipo_producto or filtros.fecha_inicio or filtros.fecha_fin %}
+
+<div class="page-intro">
     <div>
-        <h5 class="mb-1">Ventas de café y plátano</h5>
-        <p class="text-muted mb-0">
-            Registra las ventas reales de la finca activa.
-        </p>
+        <h2>💰 Ventas</h2>
+        <p>Lo que la finca vende de café y plátano. El café seco se cuenta en arrobas de 12,5 kg.</p>
     </div>
-
-    <a href="{{ url_for('ventas.nueva') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-1"></i>
-        Nueva venta
-    </a>
-</div>
-
-<div class="row g-3 mb-4">
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="stat-card">
-            <div>
-                <span>Total ventas</span>
-                <h3>${{ "{:,.0f}".format(total_ventas).replace(",", ".") }}</h3>
-            </div>
-            <i class="bi bi-cash-stack"></i>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="stat-card">
-            <div>
-                <span>Ventas café</span>
-                <h3>${{ "{:,.0f}".format(total_cafe).replace(",", ".") }}</h3>
-            </div>
-            <i class="bi bi-cup-hot-fill"></i>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="stat-card">
-            <div>
-                <span>Ventas plátano</span>
-                <h3>${{ "{:,.0f}".format(total_platano).replace(",", ".") }}</h3>
-            </div>
-            <i class="bi bi-basket-fill"></i>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-6 col-xl-3">
-        <div class="stat-card">
-            <div>
-                <span>Registros</span>
-                <h3>{{ total_registros }}</h3>
-            </div>
-            <i class="bi bi-list-check"></i>
-        </div>
+    <div class="acciones d-none d-md-flex">
+        <a href="{{ url_for('ventas.nueva') }}" class="btn btn-success">
+            <i class="bi bi-plus-lg"></i> Nueva venta
+        </a>
     </div>
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-12 col-md-6">
-        <div class="panel-card">
-            <h6 class="mb-2">Resumen café</h6>
-
-            <div class="d-flex justify-content-between mb-2">
-                <span>Kilos vendidos</span>
-                <strong>
-                    {{ "{:,.2f}".format(kilos_cafe).replace(",", "X").replace(".", ",").replace("X", ".") }} kg
-                </strong>
-            </div>
-
-            <div class="d-flex justify-content-between">
-                <span>Arrobas calculadas</span>
-                <strong>
-                    {{ "{:,.2f}".format(arrobas_cafe).replace(",", "X").replace(".", ",").replace("X", ".") }}
-                </strong>
-            </div>
+    <div class="col-12 col-xl-4">
+        <div class="stat-card verde">
+            <span class="emoji" aria-hidden="true">💰</span>
+            <h6>Total vendido</h6>
+            <h3>{{ pesos(total_ventas) }}</h3>
+            <small>{{ total_registros }} ventas{% if hay_filtros %} con filtros{% endif %}</small>
         </div>
     </div>
 
-    <div class="col-12 col-md-6">
-        <div class="panel-card">
-            <h6 class="mb-2">Resumen plátano / banano / comino</h6>
+    <div class="col-6 col-xl-4">
+        <div class="stat-card cafe">
+            <span class="emoji" aria-hidden="true">☕</span>
+            <h6>Café</h6>
+            <h3>{{ pesos(total_cafe) }}</h3>
+            <small>{{ numero(arrobas_cafe) }} @ · {{ numero(kilos_cafe) }} kg</small>
+        </div>
+    </div>
 
-            <div class="d-flex justify-content-between mb-2">
-                <span>Kilos vendidos</span>
-                <strong>
-                    {{ "{:,.2f}".format(kilos_platano).replace(",", "X").replace(".", ",").replace("X", ".") }} kg
-                </strong>
-            </div>
-
-            <div class="d-flex justify-content-between">
-                <span>Racimos vendidos</span>
-                <strong>{{ racimos_platano }}</strong>
-            </div>
+    <div class="col-6 col-xl-4">
+        <div class="stat-card platano">
+            <span class="emoji" aria-hidden="true">🍌</span>
+            <h6>Plátano</h6>
+            <h3>{{ pesos(total_platano) }}</h3>
+            <small>{{ numero(kilos_platano) }} kg · {{ racimos_platano }} racimos</small>
         </div>
     </div>
 </div>
 
-<div class="panel-card mb-4">
+<details class="filtros" {% if hay_filtros %}open{% endif %}>
+    <summary>
+        <i class="bi bi-funnel"></i> Filtrar
+        {% if hay_filtros %}<span class="activo">· filtros aplicados</span>{% endif %}
+    </summary>
     <form method="get" class="row g-3 align-items-end">
         <div class="col-12 col-md-6 col-xl-3">
-            <label class="form-label">Producto</label>
-            <select name="producto" class="form-select">
+            <label class="form-label" for="f_producto">Producto</label>
+            <select name="producto" id="f_producto" class="form-select">
                 <option value="">Todos</option>
                 {% for valor, texto in productos %}
-                    <option value="{{ valor }}"
-                            {% if filtros.producto == valor %}selected{% endif %}>
-                        {{ texto }}
-                    </option>
+                    <option value="{{ valor }}" {% if filtros.producto == valor %}selected{% endif %}>{{ texto }}</option>
                 {% endfor %}
             </select>
         </div>
 
         <div class="col-12 col-md-6 col-xl-3">
-            <label class="form-label">Tipo</label>
-            <select name="tipo_producto" class="form-select">
+            <label class="form-label" for="f_tipo">Tipo</label>
+            <select name="tipo_producto" id="f_tipo" class="form-select">
                 <option value="">Todos</option>
-
                 <optgroup label="Café">
                     {% for tipo in tipos_cafe %}
-                        <option value="{{ tipo }}"
-                                {% if filtros.tipo_producto == tipo %}selected{% endif %}>
-                            {{ tipo }}
-                        </option>
+                        <option value="{{ tipo }}" {% if filtros.tipo_producto == tipo %}selected{% endif %}>{{ tipo }}</option>
                     {% endfor %}
                 </optgroup>
-
                 <optgroup label="Plátano / Banano / Comino">
                     {% for tipo in tipos_platano %}
-                        <option value="{{ tipo }}"
-                                {% if filtros.tipo_producto == tipo %}selected{% endif %}>
-                            {{ tipo }}
-                        </option>
+                        <option value="{{ tipo }}" {% if filtros.tipo_producto == tipo %}selected{% endif %}>{{ tipo }}</option>
                     {% endfor %}
                 </optgroup>
             </select>
         </div>
 
-        <div class="col-12 col-md-6 col-xl-2">
-            <label class="form-label">Fecha inicial</label>
-            <input type="date"
-                   name="fecha_inicio"
-                   class="form-control"
-                   value="{{ filtros.fecha_inicio }}">
+        <div class="col-6 col-xl-2">
+            <label class="form-label" for="f_inicio">Desde</label>
+            <input type="date" id="f_inicio" name="fecha_inicio" class="form-control" value="{{ filtros.fecha_inicio }}">
         </div>
 
-        <div class="col-12 col-md-6 col-xl-2">
-            <label class="form-label">Fecha final</label>
-            <input type="date"
-                   name="fecha_fin"
-                   class="form-control"
-                   value="{{ filtros.fecha_fin }}">
+        <div class="col-6 col-xl-2">
+            <label class="form-label" for="f_fin">Hasta</label>
+            <input type="date" id="f_fin" name="fecha_fin" class="form-control" value="{{ filtros.fecha_fin }}">
         </div>
 
         <div class="col-12 col-xl-2 d-flex gap-2">
-            <button type="submit" class="btn btn-dark w-100">
-                <i class="bi bi-funnel me-1"></i>
-                Filtrar
-            </button>
-
-            <a href="{{ url_for('ventas.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-x-circle"></i>
-            </a>
+            <button type="submit" class="btn btn-dark flex-fill">Filtrar</button>
+            <a href="{{ url_for('ventas.index') }}" class="btn btn-outline-secondary flex-fill">Limpiar</a>
         </div>
     </form>
-</div>
+</details>
 
-<div class="panel-card">
+<section class="panel-card">
+    <h3 class="section-title mb-3">Ventas registradas</h3>
+
     {% if ventas %}
-        <div class="table-responsive d-none d-lg-block">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Producto</th>
-                        <th>Tipo</th>
-                        <th class="text-end">Kilos</th>
-                        <th class="text-end">Arrobas / Racimos</th>
-                        <th class="text-end">Precio unitario</th>
-                        <th class="text-end">Total recibido</th>
-                        <th class="text-end">Acciones</th>
-                    </tr>
-                </thead>
+        <div class="record-grid">
+            {% for venta in ventas %}
+                <article class="mobile-record-card">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div>
+                            <div class="record-title">
+                                {{ '☕' if venta.producto == 'cafe' else '🍌' }} {{ venta.tipo_producto }}
+                            </div>
+                            <div class="record-meta">{{ venta.fecha.strftime("%d/%m/%Y") }}</div>
+                        </div>
+                        <span class="badge bg-success">{{ pesos(venta.valor_total) }}</span>
+                    </div>
 
-                <tbody>
-                    {% for venta in ventas %}
-                        <tr>
-                            <td>{{ venta.fecha.strftime("%d/%m/%Y") }}</td>
-
-                            <td>
+                    <div class="row g-2 small mt-2">
+                        <div class="col-6">
+                            <span class="text-muted d-block">Cantidad</span>
+                            <strong>
                                 {% if venta.producto == "cafe" %}
-                                    <span class="badge text-bg-light">Café</span>
-                                {% else %}
-                                    <span class="badge text-bg-light">Plátano / Banano / Comino</span>
-                                {% endif %}
-                            </td>
-
-                            <td>{{ venta.tipo_producto }}</td>
-
-                            <td class="text-end">
-                                {{ "{:,.2f}".format(venta.kilos).replace(",", "X").replace(".", ",").replace("X", ".") }} kg
-                            </td>
-
-                            <td class="text-end">
-                                {% if venta.producto == "cafe" %}
-                                    {{ "{:,.2f}".format(venta.arrobas).replace(",", "X").replace(".", ",").replace("X", ".") }} arrobas
+                                    {{ numero(venta.arrobas) }} @
                                 {% else %}
                                     {{ venta.racimos or 0 }} racimos
                                 {% endif %}
-                            </td>
-
-                            <td class="text-end">
-                                ${{ "{:,.0f}".format(venta.precio_unitario).replace(",", ".") }}
-                                <br>
-                                <small class="text-muted">
-                                    {% if venta.producto == "cafe" %}
-                                        por arroba
-                                    {% else %}
-                                        por kilo
-                                    {% endif %}
-                                </small>
-                            </td>
-
-                            <td class="text-end">
-                                <strong>
-                                    ${{ "{:,.0f}".format(venta.valor_total).replace(",", ".") }}
-                                </strong>
-                            </td>
-
-                            <td class="text-end">
-                                <div class="table-actions justify-content-end">
-                                    <a href="{{ url_for('ventas.editar', venta_id=venta.id) }}"
-                                       class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-
-                                    <form method="post"
-                                          action="{{ url_for('ventas.eliminar', venta_id=venta.id) }}"
-                                          onsubmit="return confirm('¿Eliminar esta venta?');">
-                                        <button type="submit"
-                                                class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-
-                        {% if venta.observaciones %}
-                            <tr>
-                                <td colspan="8">
-                                    <small class="text-muted">
-                                        <strong>Observaciones:</strong> {{ venta.observaciones }}
-                                    </small>
-                                </td>
-                            </tr>
-                        {% endif %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="mobile-card-list d-lg-none">
-            {% for venta in ventas %}
-                <div class="mobile-record-card">
-                    <div class="d-flex justify-content-between gap-3 mb-2">
-                        <div>
-                            <strong>{{ venta.tipo_producto }}</strong>
-                            <br>
-                            <small class="text-muted">
-                                {{ venta.fecha.strftime("%d/%m/%Y") }}
-                            </small>
+                            </strong>
+                            <span class="text-muted d-block">{{ numero(venta.kilos) }} kg</span>
                         </div>
-
-                        <strong>
-                            ${{ "{:,.0f}".format(venta.valor_total).replace(",", ".") }}
-                        </strong>
+                        <div class="col-6">
+                            <span class="text-muted d-block">Precio {{ 'arroba' if venta.producto == 'cafe' else 'kilo' }}</span>
+                            <strong>{{ pesos(venta.precio_unitario) }}</strong>
+                        </div>
                     </div>
-
-                    <div class="mb-2">
-                        {% if venta.producto == "cafe" %}
-                            <span class="badge text-bg-light">Café</span>
-                        {% else %}
-                            <span class="badge text-bg-light">Plátano / Banano / Comino</span>
-                        {% endif %}
-                    </div>
-
-                    <p class="mb-1">
-                        <small>
-                            <strong>Kilos:</strong>
-                            {{ "{:,.2f}".format(venta.kilos).replace(",", "X").replace(".", ",").replace("X", ".") }} kg
-                        </small>
-                    </p>
-
-                    {% if venta.producto == "cafe" %}
-                        <p class="mb-1">
-                            <small>
-                                <strong>Arrobas:</strong>
-                                {{ "{:,.2f}".format(venta.arrobas).replace(",", "X").replace(".", ",").replace("X", ".") }}
-                            </small>
-                        </p>
-
-                        <p class="mb-1">
-                            <small>
-                                <strong>Precio arroba:</strong>
-                                ${{ "{:,.0f}".format(venta.precio_unitario).replace(",", ".") }}
-                            </small>
-                        </p>
-                    {% else %}
-                        <p class="mb-1">
-                            <small>
-                                <strong>Racimos:</strong>
-                                {{ venta.racimos or 0 }}
-                            </small>
-                        </p>
-
-                        <p class="mb-1">
-                            <small>
-                                <strong>Precio kilo:</strong>
-                                ${{ "{:,.0f}".format(venta.precio_unitario).replace(",", ".") }}
-                            </small>
-                        </p>
-                    {% endif %}
 
                     {% if venta.observaciones %}
-                        <p class="text-muted mb-2">
-                            <small>{{ venta.observaciones }}</small>
-                        </p>
+                        <div class="mt-2 small text-muted">{{ venta.observaciones }}</div>
                     {% endif %}
 
-                    <div class="d-flex gap-2">
-                        <a href="{{ url_for('ventas.editar', venta_id=venta.id) }}"
-                           class="btn btn-sm btn-outline-primary w-100">
-                            <i class="bi bi-pencil me-1"></i>
-                            Editar
+                    <div class="record-actions">
+                        <a href="{{ url_for('ventas.editar', venta_id=venta.id) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil"></i> Editar
                         </a>
-
                         <form method="post"
                               action="{{ url_for('ventas.eliminar', venta_id=venta.id) }}"
-                              class="w-100"
                               onsubmit="return confirm('¿Eliminar esta venta?');">
-                            <button type="submit"
-                                    class="btn btn-sm btn-outline-danger w-100">
-                                <i class="bi bi-trash me-1"></i>
-                                Eliminar
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash3"></i> Eliminar
                             </button>
                         </form>
                     </div>
-                </div>
+                </article>
             {% endfor %}
         </div>
     {% else %}
-        <div class="text-center py-5">
-            <i class="bi bi-cash-coin display-5 text-muted"></i>
-            <h5 class="mt-3">No hay ventas registradas</h5>
-            <p class="text-muted">
-                Cuando registres ventas de café o plátano, aparecerán en esta sección.
-            </p>
-
-            <a href="{{ url_for('ventas.nueva') }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-1"></i>
-                Crear primera venta
-            </a>
+        <div class="empty-state">
+            <span class="emoji" aria-hidden="true">💰</span>
+            {% if hay_filtros %}No hay ventas con esos filtros.{% else %}Todavía no hay ventas registradas.{% endif %}
         </div>
     {% endif %}
+</section>
+
+<div class="form-actions d-md-none">
+    <a href="{{ url_for('ventas.nueva') }}" class="btn btn-success">
+        <i class="bi bi-plus-lg"></i> Nueva venta
+    </a>
 </div>
 
 {% endblock %}

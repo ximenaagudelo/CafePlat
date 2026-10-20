@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 
+{% block title %}Inventario · CaféPlat{% endblock %}
+{% block page_title %}Inventario{% endblock %}
+
 {% block content %}
 
-<div class="container-fluid py-3">
+<div>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -140,7 +143,7 @@
                     >{{ item.observaciones if item and item.observaciones else '' }}</textarea>
                 </div>
 
-                <div class="col-12 d-flex gap-2">
+                <div class="form-actions col-12 d-flex gap-2">
                     <button type="submit" class="btn btn-primary">
                         {% if modo == "crear" %}
                             Crear elemento

@@ -6,7 +6,8 @@ services:
     runtime: python
     plan: free
     region: oregon
-    buildCommand: pip install -r requirements.txt
+    # Migra en el build: preDeployCommand no existe en el plan gratuito.
+    buildCommand: pip install -r requirements.txt && flask --app run.py db upgrade
     startCommand: bash scripts/start.sh
     healthCheckPath: /health
     envVars:
@@ -17,4 +18,6 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
+        sync: false
+      - key: ANTHROPIC_API_KEY
         sync: false
